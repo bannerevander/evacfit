@@ -8,6 +8,15 @@ export default {
     ...theme.theme,
     extend: {
       ...theme.theme.extend,
+      // Fluid headings: DESIGN.md sizes are the desktop maximum and scale down smoothly to a 360px phone.
+      // Body sizes stay fixed so resident text never drops below 16px.
+      fontSize: {
+        ...theme.theme.extend.fontSize,
+        'display-lg': ['clamp(1.75rem, 1.4rem + 1.6vw, 2.25rem)', theme.theme.extend.fontSize['display-lg'][1]],
+        h1: ['clamp(1.5rem, 1.25rem + 1.1vw, 1.875rem)', theme.theme.extend.fontSize.h1[1]],
+        h2: ['clamp(1.25rem, 1.1rem + 0.7vw, 1.5rem)', theme.theme.extend.fontSize.h2[1]],
+        h3: ['clamp(1.125rem, 1.05rem + 0.35vw, 1.25rem)', theme.theme.extend.fontSize.h3[1]],
+      },
       colors: {
         ...theme.theme.extend.colors,
         // DESIGN.md badge backgrounds, named so components never use raw hex.

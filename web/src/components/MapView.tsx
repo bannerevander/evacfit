@@ -27,7 +27,8 @@ export function MapView({ event, shelters = [], families = [], line, center, hei
   families?: Family[]
   line?: [LatLng, LatLng]
   center?: LatLng
-  height?: number
+  /** px number or any CSS length (e.g. clamp()) so the map can follow the viewport. */
+  height?: number | string
   label: string
   /** Inside a Panel: no own border/radius. */
   bare?: boolean

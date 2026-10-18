@@ -328,7 +328,7 @@ export function WargaKebutuhan() {
       )}
       <section ref={codeRef} id="kode" aria-labelledby="kode-h" className="rounded-lg border-2 border-dashed border-primary bg-background p-5 text-center">
         <h2 id="kode-h" className="text-h3">{d.warga.codeTitle}</h2>
-        <p className="my-sm font-mono text-[2.5rem] font-bold tracking-wider text-primary">{fam.code}</p>
+        <p className="my-sm font-mono text-[clamp(2rem,1.5rem+2.2vw,2.5rem)] font-bold tracking-wider text-primary">{fam.code}</p>
         <p className="text-body-md text-text-secondary">{d.warga.codeHint}</p>
       </section>
     </div>

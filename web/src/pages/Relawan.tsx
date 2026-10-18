@@ -84,7 +84,7 @@ export function RelawanTugas() {
                   </dl>
                 </div>
                 <div className="flex flex-col gap-sm border-t border-border bg-surface p-md lg:border-l lg:border-t-0">
-                  <MapView label={r.mapLabel(f.familyName)} center={f} shelters={[sh]} families={[f]} line={[f, sh]} height={300} />
+                  <MapView label={r.mapLabel(f.familyName)} center={f} shelters={[sh]} families={[f]} line={[f, sh]} height="clamp(220px, 40vh, 300px)" />
                   <p className="text-body-sm text-text-secondary">{r.routeNote}</p>
                   <a
                     className="inline-flex min-h-12 items-center gap-sm self-start rounded-md px-sm font-semibold text-primary underline"

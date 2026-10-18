@@ -164,18 +164,19 @@ export function KoordinatorKomando() {
       <section aria-label={k.kpiLabel} className="mb-lg grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-3 xl:grid-cols-6">
         {kpis.map((x) => (
           <div key={x.label} className="flex min-w-0 flex-col gap-sm bg-background p-md">
-            <div className="flex items-center gap-sm">
+            {/* Icon above the label on phones so long words ("Direkomendasikan") keep their full width. */}
+            <div className="flex flex-col items-start gap-xs sm:flex-row sm:items-center sm:gap-sm">
               <IconChip icon={x.icon} tone={x.tone} size={32} />
-              <p className="min-w-0 text-body-sm font-medium text-text-secondary [overflow-wrap:anywhere]">{x.label}</p>
+              <p className="min-w-0 break-words text-body-sm font-medium text-text-secondary">{x.label}</p>
             </div>
-            <p className={`text-[2rem] font-bold leading-none tabular-nums ${x.danger ? 'text-status-rejected' : 'text-text-primary'}`}>{x.value}</p>
+            <p className={`text-[clamp(1.625rem,1.3rem+1.4vw,2rem)] font-bold leading-none tabular-nums ${x.danger ? 'text-status-rejected' : 'text-text-primary'}`}>{x.value}</p>
           </div>
         ))}
       </section>
 
       <div className="grid gap-lg xl:grid-cols-3">
         <Panel title={k.mapTitle} icon={MapIcon} className="xl:col-span-2" bodyClass="p-0">
-          <MapView bare label={k.mapLabel} event={event} shelters={state.shelters} families={inZone} height={520} />
+          <MapView bare label={k.mapLabel} event={event} shelters={state.shelters} families={inZone} height="clamp(280px, 55vh, 520px)" />
           <div className="border-t border-border px-md py-sm"><MapLegend /></div>
         </Panel>
 

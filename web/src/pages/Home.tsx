@@ -1,6 +1,6 @@
 import { ArrowRight, Building2, LogIn, Check, CircleCheckBig, ClipboardList, HeartHandshake, RadioTower, Shuffle, ShieldCheck, Truck, type LucideIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { A11yToggles, LangSwitch, Logo } from '../components/Layout'
+import { A11yToggles, LangSwitch, Logo, Mark } from '../components/Layout'
 import { Button, IconChip, buttonCls, type Tone } from '../components/ui'
 import { useT } from '../i18n'
 import { dataMode } from '../state/remote'
@@ -66,9 +66,13 @@ export default function Home() {
     <div className="min-h-dvh bg-background">
       <header className="sticky top-0 z-[1000] border-b border-border bg-background">
         <div className="mx-auto flex h-16 max-w-[1180px] items-center gap-sm px-md">
-          <Logo className="mr-auto h-7 sm:h-8" />
+          {/* Icon-only below 400px so the staff link, language and contrast controls still fit on one row. */}
+          <Mark className="mr-auto h-8 min-[400px]:hidden" />
+          <Logo className="mr-auto hidden h-7 min-[400px]:block sm:h-8" />
           <a href="#petugas" className="inline-flex min-h-12 shrink-0 items-center gap-xs rounded-md px-sm text-body-sm font-semibold text-text-secondary underline-offset-4 hover:text-text-primary hover:underline">
-            <LogIn aria-hidden className="h-4 w-4" />{d.home.staffSignIn}
+            <LogIn aria-hidden className="hidden h-4 w-4 min-[400px]:block" />
+            <span className="min-[400px]:hidden">{d.home.staffShort}</span>
+            <span className="hidden min-[400px]:inline">{d.home.staffSignIn}</span>
           </a>
           <LangSwitch />
           <A11yToggles only={['highContrast']} />
@@ -80,7 +84,7 @@ export default function Home() {
           <div className="mx-auto grid max-w-[1180px] items-center gap-xl px-md py-xl lg:grid-cols-[1.25fr_1fr] lg:py-2xl">
             <div className="enter">
               <p className="inline-flex rounded-full bg-tint-confirmed px-md py-xs text-body-sm font-semibold text-status-confirmed">{d.home.eyebrow}</p>
-              <h1 className="mt-md text-[2rem] font-bold leading-tight tracking-tight text-text-primary lg:text-[2.75rem]">{d.home.title}</h1>
+              <h1 className="mt-md text-[clamp(1.75rem,1.1rem+2.9vw,2.75rem)] font-bold leading-tight tracking-tight text-text-primary">{d.home.title}</h1>
               <p className="mt-md max-w-[600px] text-body-lg text-text-secondary">{d.home.lead}</p>
               {/* One primary action for residents; staff enter through the small header link (utility navigation). */}
               <div className="mt-lg flex">
@@ -98,7 +102,7 @@ export default function Home() {
           <ul className="mt-lg grid gap-md md:grid-cols-3">
             {d.home.stats.map((s) => (
               <li key={s.value} className="rounded-lg border border-border bg-background p-lg">
-                <p className="text-[2.25rem] font-bold leading-none tracking-tight text-primary">{s.value}</p>
+                <p className="text-[clamp(1.875rem,1.5rem+1.6vw,2.25rem)] font-bold leading-none tracking-tight text-primary">{s.value}</p>
                 <p className="mt-sm text-body-md text-text-primary">{s.label}</p>
                 <p className="mt-sm text-caption uppercase text-text-secondary">{s.source}</p>
               </li>

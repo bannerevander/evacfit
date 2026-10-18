@@ -417,10 +417,11 @@ export function StaffLayout({ items, role, showAlerts, context }: { items: NavIt
         {/* One sticky bar on every staff screen: where I work (context) on the left; connection, language and contrast on the right. */}
         <header className="sticky top-0 z-[1000] border-b border-border bg-background">
           <div className="flex min-h-16 items-center gap-sm px-md lg:px-xl">
-            <Link to="/" className="inline-flex min-h-12 shrink-0 items-center rounded-md lg:hidden" aria-label={d.layout.pickRole}>
+            {/* Live app: no role picker to go back to, so the phone header gives that space to the role name. */}
+            {dataMode === 'demo' && <Link to="/" className="inline-flex min-h-12 shrink-0 items-center rounded-md lg:hidden" aria-label={d.layout.pickRole}>
               <Mark className="h-8" />
-            </Link>
-            <p className="min-w-0 truncate text-body-md font-bold text-text-primary lg:hidden">{roleName}</p>
+            </Link>}
+            <p className="min-w-0 text-body-sm font-bold leading-tight text-text-primary sm:text-body-md lg:hidden">{roleName}</p>
             {context && <div className="hidden min-w-0 lg:block">{context}</div>}
             <div className="ml-auto flex shrink-0 items-center gap-sm">
               <SyncStatus />

@@ -181,6 +181,7 @@ export const id = {
     lead: 'EvacFit mencocokkan kebutuhan fungsional keluarga rentan dengan posko yang sudah terverifikasi, dan baru memberangkatkan setelah posko mengonfirmasi.',
     ctaCitizen: 'Masuk sebagai warga',
     staffSignIn: 'Masuk petugas',
+    staffShort: 'Petugas',
     previewLabel: 'Contoh tampilan warga di HP',
     problemTitle: 'Masalahnya bukan kekurangan tempat, tetapi tempat yang tidak cocok',
     stats: [
