@@ -180,7 +180,7 @@ export const id = {
     title: 'Setiap orang tiba di tempat yang mampu menerima kebutuhannya.',
     lead: 'EvacFit mencocokkan kebutuhan fungsional keluarga rentan dengan posko yang sudah terverifikasi, dan baru memberangkatkan setelah posko mengonfirmasi.',
     ctaCitizen: 'Masuk sebagai warga',
-    ctaStaff: 'Lihat dashboard komando',
+    staffSignIn: 'Masuk petugas',
     previewLabel: 'Contoh tampilan warga di HP',
     problemTitle: 'Masalahnya bukan kekurangan tempat, tetapi tempat yang tidak cocok',
     stats: [

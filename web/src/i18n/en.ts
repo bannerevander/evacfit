@@ -170,7 +170,7 @@ export const en: Dict = {
     title: 'Everyone arrives at a shelter that can actually meet their needs.',
     lead: 'EvacFit matches the functional needs of at-risk families with verified shelters, and only sends them on their way once the shelter has confirmed.',
     ctaCitizen: 'Continue as a resident',
-    ctaStaff: 'View the command dashboard',
+    staffSignIn: 'Staff sign-in',
     previewLabel: 'Sample resident screen on a phone',
     problemTitle: 'The problem is not a lack of beds — it is beds that do not fit',
     stats: [

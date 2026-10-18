@@ -1,4 +1,4 @@
-import { ArrowRight, Building2, Check, CircleCheckBig, ClipboardList, HeartHandshake, RadioTower, Shuffle, ShieldCheck, Truck, type LucideIcon } from 'lucide-react'
+import { ArrowRight, Building2, LogIn, Check, CircleCheckBig, ClipboardList, HeartHandshake, RadioTower, Shuffle, ShieldCheck, Truck, type LucideIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { A11yToggles, LangSwitch, Logo } from '../components/Layout'
 import { Button, IconChip, buttonCls, type Tone } from '../components/ui'
@@ -67,6 +67,9 @@ export default function Home() {
       <header className="sticky top-0 z-[1000] border-b border-border bg-background">
         <div className="mx-auto flex h-16 max-w-[1180px] items-center gap-sm px-md">
           <Logo className="mr-auto h-7 sm:h-8" />
+          <a href="#petugas" className="inline-flex min-h-12 shrink-0 items-center gap-xs rounded-md px-sm text-body-sm font-semibold text-text-secondary underline-offset-4 hover:text-text-primary hover:underline">
+            <LogIn aria-hidden className="h-4 w-4" />{d.home.staffSignIn}
+          </a>
           <LangSwitch />
           <A11yToggles only={['highContrast']} />
         </div>
@@ -79,12 +82,10 @@ export default function Home() {
               <p className="inline-flex rounded-full bg-tint-confirmed px-md py-xs text-body-sm font-semibold text-status-confirmed">{d.home.eyebrow}</p>
               <h1 className="mt-md text-[2rem] font-bold leading-tight tracking-tight text-text-primary lg:text-[2.75rem]">{d.home.title}</h1>
               <p className="mt-md max-w-[600px] text-body-lg text-text-secondary">{d.home.lead}</p>
-              <div className="mt-lg flex flex-col gap-sm sm:flex-row">
+              {/* One primary action for residents; staff enter through the small header link (utility navigation). */}
+              <div className="mt-lg flex">
                 <Link to="/warga" className={buttonCls('primary', 'lg') + ' sm:whitespace-nowrap'}>
                   <HeartHandshake aria-hidden className="h-6 w-6" />{d.home.ctaCitizen}
-                </Link>
-                <Link to="/koordinator" className={buttonCls('secondary', 'lg') + ' sm:whitespace-nowrap'}>
-                  {d.home.ctaStaff}<ArrowRight aria-hidden className="h-5 w-5" />
                 </Link>
               </div>
             </div>
@@ -139,7 +140,7 @@ export default function Home() {
               </span>
             </Link>
             <div className="flex flex-col gap-sm">
-              <h3 className="text-h3 text-text-primary">{d.home.staffTitle}</h3>
+              <h3 id="petugas" className="scroll-mt-20 text-h3 text-text-primary">{d.home.staffTitle}</h3>
               <ul className="flex flex-col gap-sm">
                 {staff.map((r) => (
                   <li key={r.to}>
