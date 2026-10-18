@@ -1,5 +1,6 @@
 # EvacFit — Web (frontend)
-nPrototipe publik: **https://evacfit.vercel.app** (mode supabase, deploy dari folder `web/` ke Vercel; env `VITE_*` diatur di proyek Vercel `evacfit`).
+
+Prototipe publik: **https://evacfit.vercel.app** (mode supabase, deploy dari folder `web/` ke Vercel; env `VITE_*` diatur di proyek Vercel `evacfit`).
 
 Frontend web app EvacFit. Tampilan mengikuti `DESIGN.md`; token warna/tipografi diambil apa adanya dari `tailwind.theme.json` (salinan dari folder PRD).
 
