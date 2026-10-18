@@ -3,7 +3,6 @@ import { useId, useState } from 'react'
 import { NeedBadges, usePersona } from '../components/domain'
 import { Button, Card, CheckRow, Dialog, EmptyState, Justification, Meter, PageHeader, Panel, Select, StatusBadge, TextArea, TextInput } from '../components/ui'
 import { region } from '../config'
-import { volunteers } from '../data/mock'
 import { useT } from '../i18n'
 import { formatKm, formatTime } from '../lib/geo'
 import { facilityTypes, shelterLoad } from '../lib/matching'
@@ -225,7 +224,7 @@ export function PoskoKedatangan() {
                 <ul className="grid gap-md lg:grid-cols-2">
                   {list.map((a) => {
                     const f = state.families.find((x) => x.id === a.familyId)!
-                    const vol = volunteers.find((v) => v.id === a.volunteerId)
+                    const vol = state.volunteers.find((v) => v.id === a.volunteerId)
                     return (
                       <li key={a.id} className="flex flex-col gap-sm rounded-lg border border-border bg-surface p-md">
                         <div className="flex flex-wrap items-start justify-between gap-sm">

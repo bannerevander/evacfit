@@ -5,7 +5,7 @@ import { FamilyForm } from '../components/FamilyForm'
 import { MapView } from '../components/MapView'
 import { Button, EmptyState, PageHeader, StatusBadge, buttonCls } from '../components/ui'
 import { region } from '../config'
-import { emptyNeeds, volunteers } from '../data/mock'
+import { emptyNeeds } from '../data/mock'
 import { useT, type Dict } from '../i18n'
 import { etaMinutes, formatKm, formatTime } from '../lib/geo'
 import { useStore } from '../state/store'
@@ -31,7 +31,7 @@ export function RelawanTugas() {
   const r = d.relawan
   const { state, dispatch } = useStore()
   const [me] = usePersona('volunteer')
-  const vol = volunteers.find((v) => v.id === me) ?? volunteers[0]
+  const vol = state.volunteers.find((v) => v.id === me) ?? state.volunteers[0]
   const mine = state.assignments.filter((a) => a.volunteerId === vol.id)
   const active = mine.filter((a) => a.status === 'confirmed' || a.status === 'in_transit')
   const done = mine.filter((a) => a.status === 'arrived')

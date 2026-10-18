@@ -152,9 +152,12 @@ export const id = {
   },
   roles: { citizen: 'Warga', coordinator: 'Koordinator BPBD', shelter: 'Pengelola Posko', field: 'Relawan Lapangan' },
   auth: {
-    title: 'Masuk untuk melanjutkan',
-    body: (role: string) => `Halaman ini untuk akun ${role}. Data tersimpan di server dan dibatasi sesuai peran.`,
-    demo: (role: string) => `Masuk sebagai demo ${role}`,
+    title: 'Masuk',
+    body: (role: string) => `Masuk dengan akun ${role} Anda.`,
+    email: 'Email',
+    password: 'Kata sandi',
+    submit: 'Masuk',
+    signOut: 'Keluar',
     failed: 'Gagal masuk. Periksa koneksi lalu coba lagi.',
   },
   nav: {
@@ -202,7 +205,8 @@ export const id = {
       shelter: 'Konfirmasi rekomendasi, check-in kedatangan, data fasilitas.',
       field: 'Tugas jemput dan registrasi darurat — tetap jalan saat sinyal putus.',
     },
-    disclaimer: 'Mode demo: semua nama, nomor, dan posko fiktif. EvacFit adalah sistem pendukung keputusan — komando evakuasi tetap di tangan otoritas penanggulangan bencana, sistem tidak pernah menyatakan rute “aman”, dan tidak menjanjikan tempat sebelum posko mengonfirmasi.',
+    disclaimer: 'EvacFit adalah sistem pendukung keputusan — komando evakuasi tetap di tangan otoritas penanggulangan bencana, sistem tidak pernah menyatakan rute “aman”, dan tidak menjanjikan tempat sebelum posko mengonfirmasi.',
+    demoNote: 'Mode demo: semua nama, nomor, dan posko fiktif.',
     reset: 'Atur ulang data demo',
   },
   warga: {

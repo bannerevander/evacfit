@@ -5,7 +5,7 @@ import * as mock from '../data/mock'
 import { setFormatLang } from '../i18n/format'
 import { familiesToMatch, matchFamilies } from '../lib/matching'
 import type {
-  AlertMsg, Assignment, AssignmentStatus, DisasterEvent, Family, FacilityType, Lang, OutboxItem, RejectionCode, Severity, Shelter, ShelterOperationalStatus, UnmetNeed,
+  AlertMsg, Assignment, AssignmentStatus, DisasterEvent, Family, FacilityType, Lang, OutboxItem, RejectionCode, Severity, Shelter, ShelterOperationalStatus, UnmetNeed, Volunteer,
 } from '../types'
 import { canTransition, expiredLocks, SOFT_LOCK_MINUTES, vehicleFits } from './machine'
 import { dataMode, fetchAll, fetchProfile, RemoteError, remoteActions, send, supabase, type Profile, type Remote } from './remote'
@@ -20,6 +20,7 @@ export interface Alert {
 export interface State {
   families: Family[]
   shelters: Shelter[]
+  volunteers: Volunteer[]
   assignments: Assignment[]
   events: DisasterEvent[]
   unmet: UnmetNeed[]
@@ -66,18 +67,21 @@ function detectLang(): Lang {
 }
 
 export function initialState(): State {
+  // Supabase mode starts empty and fills from the server; sample data exists only in demo mode.
+  const demo = dataMode === 'demo'
   return {
-    families: mock.families,
-    shelters: mock.shelters,
+    families: demo ? mock.families : [],
+    shelters: demo ? mock.shelters : [],
+    volunteers: demo ? mock.volunteers : [],
     assignments: [],
-    events: mock.disasterEvents,
+    events: demo ? mock.disasterEvents : [],
     unmet: [],
     alerts: [],
     offline: false,
     outbox: [],
     prefs: { highContrast: false, simpleText: false },
     lang: detectLang(),
-    persona: { family: 'fam-01', shelter: 'sh-01', volunteer: 'vol-01' },
+    persona: demo ? { family: 'fam-01', shelter: 'sh-01', volunteer: 'vol-01' } : { family: '', shelter: '', volunteer: '' },
   }
 }
 
@@ -204,7 +208,7 @@ function reduce(s: State, a: Action): State {
     case 'dispatch': {
       const as = s.assignments.find((x) => x.id === a.id)!
       const fam = s.families.find((f) => f.id === as.familyId)!
-      const vol = mock.volunteers.find((v) => v.id === a.volunteerId)!
+      const vol = s.volunteers.find((v) => v.id === a.volunteerId)!
       if (as.status !== 'confirmed') throw new StoreError('not_confirmed') // RULE 5
       if (!vehicleFits(fam, vol.vehicleType)) throw new StoreError('vehicle_mismatch') // NAV-3
       return { ...s, assignments: s.assignments.map((x) => (x.id === a.id ? { ...x, volunteerId: vol.id, vehicleType: vol.vehicleType } : x)) }
@@ -344,14 +348,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (dataMode === 'supabase') {
       // Soft-locks expire in pg_cron; the browser only re-reads the server so other roles' changes show up.
       const t = window.setInterval(() => void refresh().catch(() => {}), 15_000)
-      const { data } = supabase!.auth.onAuthStateChange(() => {
+      const { data } = supabase!.auth.onAuthStateChange((event) => {
+        if (event === 'SIGNED_OUT') {
+          // Shared devices: nothing from the previous account stays on screen or in storage.
+          local({ type: 'reset' }) // local reducer only: back to the empty initial state, keeping language & display prefs
+          setProfile(null)
+          return
+        }
         // Defer: supabase-js warns against awaiting its own calls inside this callback.
         setTimeout(() => {
-          void fetchProfile().then((p) => {
-            setProfile(p)
+          void fetchProfile().then(async (p) => {
             if (p?.shelterId) local({ type: 'set_persona', key: 'shelter', value: p.shelterId })
             if (p?.volunteerId) local({ type: 'set_persona', key: 'volunteer', value: p.volunteerId })
-            return refresh()
+            await refresh()
+            setProfile(p) // after the data, so role pages never render empty
           }).catch(() => setProfile(null))
         })
       })

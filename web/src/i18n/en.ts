@@ -142,9 +142,12 @@ export const en: Dict = {
   },
   roles: { citizen: 'Resident', coordinator: 'Emergency Coordinator', shelter: 'Shelter Manager', field: 'Field Volunteer' },
   auth: {
-    title: 'Sign in to continue',
-    body: (role) => `This page is for ${role} accounts. Data is stored on the server and limited by role.`,
-    demo: (role) => `Sign in as demo ${role}`,
+    title: 'Sign in',
+    body: (role) => `Sign in with your ${role} account.`,
+    email: 'Email',
+    password: 'Password',
+    submit: 'Sign in',
+    signOut: 'Sign out',
     failed: 'Sign-in failed. Check your connection and try again.',
   },
   nav: {
@@ -192,7 +195,8 @@ export const en: Dict = {
       shelter: 'Confirm recommendations, check in arrivals, maintain facility data.',
       field: 'Pickup tasks and emergency registration — keeps working without signal.',
     },
-    disclaimer: 'Demo mode: all names, numbers and shelters are fictional. EvacFit is a decision-support system — evacuation command stays with the disaster authority, the system never declares a route “safe”, and no place is promised before the shelter confirms.',
+    disclaimer: 'EvacFit is a decision-support system — evacuation command stays with the disaster authority, the system never declares a route “safe”, and no place is promised before the shelter confirms.',
+    demoNote: 'Demo mode: all names, numbers and shelters are fictional.',
     reset: 'Reset demo data',
   },
   warga: {

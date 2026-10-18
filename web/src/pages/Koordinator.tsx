@@ -6,7 +6,9 @@ import { useState } from 'react'
 import { NeedBadges, ShelterCard } from '../components/domain'
 import { MapLegend, MapView } from '../components/MapView'
 import { Button, Card, Dialog, EmptyState, IconChip, Meter, PageHeader, Panel, Select, StatusBadge, TextInput, type Tone } from '../components/ui'
-import { floodScenario, volunteers } from '../data/mock'
+import { region } from '../config'
+import { floodScenario } from '../data/mock'
+import { dataMode } from '../state/remote'
 import { useT, type Dict } from '../i18n'
 import { fmtNum } from '../i18n/format'
 import { distanceKm, formatTime } from '../lib/geo'
@@ -31,11 +33,13 @@ function ActivateDialog({ open, onClose, draft }: { open: boolean; onClose: () =
   const d = useT()
   const k = d.koord
   const { dispatch } = useStore()
-  const [type, setType] = useState<DisasterType>(draft?.type ?? floodScenario.type)
-  const [title, setTitle] = useState(draft?.title ?? floodScenario.title)
-  const [lat, setLat] = useState(draft?.lat ?? floodScenario.lat)
-  const [lng, setLng] = useState(draft?.lng ?? floodScenario.lng)
-  const [radius, setRadius] = useState(draft?.radiusKm ?? floodScenario.radiusKm)
+  // Demo mode pre-fills the rehearsed flood scenario; the live app starts from the region centre with a blank title.
+  const prefill = dataMode === 'demo' ? floodScenario : { type: 'flood' as const, title: '', ...region.center, radiusKm: 2 }
+  const [type, setType] = useState<DisasterType>(draft?.type ?? prefill.type)
+  const [title, setTitle] = useState(draft?.title ?? prefill.title)
+  const [lat, setLat] = useState(draft?.lat ?? prefill.lat)
+  const [lng, setLng] = useState(draft?.lng ?? prefill.lng)
+  const [radius, setRadius] = useState(draft?.radiusKm ?? prefill.radiusKm)
   return (
     <Dialog open={open} onClose={onClose} title={draft ? k.dialogBmkg : k.dialogManual}>
       <form
@@ -265,9 +269,9 @@ export function KoordinatorPenugasan() {
           {confirmed.map((a) => {
             const f = state.families.find((x) => x.id === a.familyId)!
             const sh = state.shelters.find((s) => s.id === a.shelterId)!
-            const assigned = volunteers.find((v) => v.id === a.volunteerId)
-            const chosen = pick[a.id] ?? volunteers.find((v) => vehicleFits(f, v.vehicleType))?.id ?? ''
-            const chosenFits = !!chosen && vehicleFits(f, volunteers.find((v) => v.id === chosen)!.vehicleType)
+            const assigned = state.volunteers.find((v) => v.id === a.volunteerId)
+            const chosen = pick[a.id] ?? state.volunteers.find((v) => vehicleFits(f, v.vehicleType))?.id ?? ''
+            const chosenFits = !!chosen && vehicleFits(f, state.volunteers.find((v) => v.id === chosen)!.vehicleType)
             return (
               <Card as="li" key={a.id} className="flex flex-col gap-md">
                 <div className="flex flex-wrap items-start justify-between gap-sm">
@@ -286,7 +290,7 @@ export function KoordinatorPenugasan() {
                 ) : (
                   <div className="mt-auto grid gap-sm sm:grid-cols-[1fr_auto] sm:items-end">
                     <Select label={k.volunteer} value={chosen} onChange={(e) => setPick({ ...pick, [a.id]: e.target.value })}>
-                      {volunteers.map((v) => {
+                      {state.volunteers.map((v) => {
                         const fits = vehicleFits(f, v.vehicleType)
                         return <option key={v.id} value={v.id} disabled={!fits}>{v.name} — {d.vehicle[v.vehicleType]}{fits ? '' : ` ${k.unfit}`}</option>
                       })}

@@ -13,7 +13,8 @@ import {
   Button, ChoiceTile, Counter, FeatureBadge, IconChip, Justification, Meter, ReadAloud, StatusBadge, TextArea, TextInput, buttonCls, toneCls, type Tone,
 } from '../components/ui'
 import { region } from '../config'
-import { citizenFamilyIds, emptyNeeds, volunteers } from '../data/mock'
+import { citizenFamilyIds, emptyNeeds } from '../data/mock'
+import { dataMode } from '../state/remote'
 import { useT, type Dict } from '../i18n'
 import { distanceKm, formatKm, formatTime } from '../lib/geo'
 import { needKeys } from '../lib/needs'
@@ -29,7 +30,8 @@ const needIcon: Record<NeedKey, LucideIcon> = {
 }
 
 function myFamilies(s: State): Family[] {
-  return s.families.filter((f) => citizenFamilyIds.includes(f.id) || f.registeredVia === 'caregiver')
+  // Supabase: RLS already returns only this account's families.
+  return dataMode === 'supabase' ? s.families : s.families.filter((f) => citizenFamilyIds.includes(f.id) || f.registeredVia === 'caregiver')
 }
 
 function useMyFamily() {
@@ -54,7 +56,7 @@ function heroFor(d: Dict, s: State, fam: Family, a: Assignment | undefined, onRe
   const h = d.warga.hero
   const event = activeEvent(s)
   const shelterName = (a && s.shelters.find((x) => x.id === a.shelterId)?.name) ?? h.fallbackShelter
-  const vol = a?.volunteerId ? volunteers.find((v) => v.id === a.volunteerId) : undefined
+  const vol = a?.volunteerId ? s.volunteers.find((v) => v.id === a.volunteerId) : undefined
   const unmet = s.unmet.some((u) => u.familyId === fam.id && u.resolutionStatus !== 'resolved' && !u.shelterId)
   switch (fam.status) {
     case 'waiting_match':

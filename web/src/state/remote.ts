@@ -1,7 +1,7 @@
 // Supabase backend (VITE_DATA_MODE=supabase). Reads go through RLS; every domain write is one Postgres RPC
 // (supabase/migrations/*_rpc.sql), which also owns matching, capacity locks and soft-lock expiry.
 import { createClient } from '@supabase/supabase-js'
-import type { AlertMsg, Assignment, DisasterEvent, Family, Role, Shelter, UnmetNeed } from '../types'
+import type { AlertMsg, Assignment, DisasterEvent, Family, Role, Shelter, UnmetNeed, Volunteer } from '../types'
 import type { Action, Alert, State } from './store'
 
 export const dataMode: 'demo' | 'supabase' = import.meta.env.VITE_DATA_MODE === 'supabase' ? 'supabase' : 'demo'
@@ -39,13 +39,14 @@ function shelterOf(row: Row): Shelter {
   return { id, name, address, contact, lat, lng, totalCapacity, currentOccupancy, operationalStatus, verificationStatus, features } as unknown as Shelter
 }
 
-export type Remote = Pick<State, 'families' | 'shelters' | 'assignments' | 'events' | 'unmet'>
+export type Remote = Pick<State, 'families' | 'shelters' | 'volunteers' | 'assignments' | 'events' | 'unmet'>
 
 export async function fetchAll(): Promise<Remote> {
   const db = supabase!
-  const [families, shelters, assignments, events, unmet] = await Promise.all([
+  const [families, shelters, volunteers, assignments, events, unmet] = await Promise.all([
     db.from('family_units').select('*, needs:functional_needs(*)').order('id'),
     db.from('shelters').select('*').order('id'),
+    db.from('volunteers').select('*').order('id'),
     db.from('evacuation_assignments').select('*').order('created_at'),
     db.from('disaster_events').select('*').order('time', { ascending: false }),
     db.from('unmet_needs').select('*').order('reported_at'),
@@ -53,6 +54,7 @@ export async function fetchAll(): Promise<Remote> {
   return {
     families: must(families).map((r) => ({ ...camel(r), needs: camel(r.needs as Row) }) as unknown as Family),
     shelters: must(shelters).map(shelterOf),
+    volunteers: must(volunteers).map((r) => camel(r) as unknown as Volunteer),
     assignments: must(assignments).map((r) => camel(r) as unknown as Assignment),
     events: must(events).map((r) => camel(r) as unknown as DisasterEvent),
     unmet: must(unmet).map((r) => camel(r) as unknown as UnmetNeed),
@@ -69,7 +71,7 @@ export async function fetchProfile(): Promise<Profile | null> {
 /** Action types the server owns. Everything else (language, prefs, alerts, persona) stays in the browser. */
 export const remoteActions = new Set<Action['type']>([
   'activate_event', 'close_event', 'run_matching', 'confirm', 'reject', 'ready', 'dispatch', 'depart', 'check_in',
-  'save_family', 'save_shelter', 'set_shelter_status', 'verify_shelter', 'resolve_unmet', 'reset',
+  'save_family', 'save_shelter', 'set_shelter_status', 'verify_shelter', 'resolve_unmet',
 ])
 
 function call(a: Action): [string, Row] {
@@ -88,7 +90,6 @@ function call(a: Action): [string, Row] {
     case 'set_shelter_status': return ['set_shelter_status', { p_id: a.id, p_status: a.status }]
     case 'verify_shelter': return ['verify_shelter', { p_id: a.id, p_verified: a.verified }]
     case 'resolve_unmet': return ['resolve_unmet', { p_id: a.id, p_status: a.status }]
-    case 'reset': return ['reset_demo', {}]
     default: throw new Error(`not a remote action: ${a.type}`)
   }
 }

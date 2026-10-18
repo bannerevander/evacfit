@@ -19,7 +19,7 @@ Dua mode data, dipilih lewat `VITE_DATA_MODE` (salin `.env.example` ke `.env`):
 | `…04_audit_cron.sql` | Trigger audit + `expire_soft_locks()` tiap menit |
 | `…05_seed.sql` | Data contoh (= `src/data/mock.ts`) + 4 akun demo |
 
-Akun demo (data fiktif, kata sandi sama untuk semua: lihat `demoAccounts` di `src/config.ts`): `koordinator@evacfit.demo`, `posko@evacfit.demo` (Posko Padang Bulan), `relawan@evacfit.demo` (Andi Pratama, van kursi roda), `warga@evacfit.demo` (Keluarga Siregar + 2 keluarga dampingan). Di mode supabase, setiap halaman peran menampilkan tombol **Masuk sebagai demo …**.
+Akun uji (data fiktif). Sementara belum ada auth sungguhan, form masuk menerima email & kata sandi apa saja lalu masuk ke akun peran halaman itu (`demoAccounts` di `src/config.ts`): `koordinator@evacfit.demo`, `posko@evacfit.demo` (Posko Padang Bulan), `relawan@evacfit.demo` (Andi Pratama, van kursi roda), `warga@evacfit.demo` (Keluarga Siregar + 2 keluarga dampingan). Atur ulang data: jalankan `select private.seed_demo();` di SQL Editor.
 
 ## Menjalankan
 

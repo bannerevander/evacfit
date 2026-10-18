@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { A11yToggles, LangSwitch, Logo } from '../components/Layout'
 import { Button, IconChip, buttonCls, type Tone } from '../components/ui'
 import { useT } from '../i18n'
+import { dataMode } from '../state/remote'
 import { useStore } from '../state/store'
 
 const flowIcons: { icon: LucideIcon; tone: Tone }[] = [
@@ -159,8 +160,8 @@ export default function Home() {
 
         <footer className="border-t border-border bg-surface">
           <div className="mx-auto flex max-w-[1180px] flex-col gap-md px-md py-lg text-body-sm text-text-secondary md:flex-row md:items-center">
-            <p className="flex-1">{d.home.disclaimer}</p>
-            <Button variant="secondary" onClick={() => dispatch({ type: 'reset' })}>{d.home.reset}</Button>
+            <p className="flex-1">{dataMode === 'demo' && `${d.home.demoNote} `}{d.home.disclaimer}</p>
+            {dataMode === 'demo' && <Button variant="secondary" onClick={() => dispatch({ type: 'reset' })}>{d.home.reset}</Button>}
           </div>
         </footer>
       </main>

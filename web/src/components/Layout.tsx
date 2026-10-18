@@ -7,8 +7,10 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { region } from '../config'
 import { useT, type Dict } from '../i18n'
 import { fmtNum } from '../i18n/format'
+import { dataMode } from '../state/remote'
 import { activeEvent, useStore, type Alert, type State } from '../state/store'
 import type { Lang } from '../types'
+import { SignOut } from './Gate'
 import { IconChip, type Tone } from './ui'
 
 export function Logo({ className = 'h-8' }: { className?: string }) {
@@ -325,6 +327,7 @@ export function CitizenLayout({ items }: { items: NavItem[] }) {
             {region.emergencyNumber}<span className="sr-only"> — {d.emergency.call}</span>
           </a>
           <DisplayMenu />
+          <SignOut />
         </div>
         <nav aria-label={d.nav.citizenMenu} className="mx-auto hidden max-w-[640px] px-md lg:block">
           <ul className="flex gap-xs">
@@ -400,14 +403,14 @@ export function StaffLayout({ items, role, showAlerts, context }: { items: NavIt
             })}
           </ul>
         </nav>
-        <div className="mt-auto border-t border-border p-md">
+        {dataMode === 'demo' && <div className="mt-auto border-t border-border p-md">
           <p className="mb-xs text-caption uppercase text-text-secondary">{d.layout.switchRole}</p>
           <ul className="flex flex-wrap gap-xs">
             {(Object.keys(roleMeta) as (StaffRole | 'citizen')[]).filter((r) => r !== role).map((r) => (
               <li key={r}><Link to={roleMeta[r].to} className="inline-flex min-h-10 items-center rounded-full border border-border px-sm text-body-sm text-text-primary hover:border-primary">{d.roles[r]}</Link></li>
             ))}
           </ul>
-        </div>
+        </div>}
       </aside>
 
       <div className="lg:pl-[272px]">
@@ -423,6 +426,7 @@ export function StaffLayout({ items, role, showAlerts, context }: { items: NavIt
               <SyncStatus />
               <LangSwitch />
               <A11yToggles only={['highContrast']} />
+              <SignOut />
             </div>
           </div>
           {context && <div className="border-t border-border px-md py-sm lg:hidden">{context}</div>}
