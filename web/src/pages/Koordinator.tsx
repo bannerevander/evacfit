@@ -77,7 +77,8 @@ function BmkgFeed() {
   const k = d.koord
   const { state } = useStore()
   const [draft, setDraft] = useState<DisasterEvent | undefined>()
-  const feed = state.events.filter((e) => e.source === 'bmkg')
+  // Live alerts only: expired or closed BMKG events drop off (the server closes unapproved drafts after 24 h).
+  const feed = state.events.filter((e) => e.source === 'bmkg' && e.status !== 'closed')
   return (
     <Panel title={k.bmkgTitle} icon={RadioTower} tone="red" bodyClass="flex flex-col gap-sm">
       <p className="text-body-sm text-text-secondary">{k.bmkgLead}</p>

@@ -357,7 +357,7 @@ export const en: Dict = {
     emptyTitle: 'No data yet',
     emptyBody: 'Activate an emergency to see families inside the hazard zone.',
     bmkgTitle: 'BMKG alerts',
-    bmkgLead: 'Earthquakes M ≥ 5.0 or felt events. Awaiting your approval before any evacuation starts.',
+    bmkgLead: 'Live BMKG data (checked every minute): earthquakes M > 5.0 or felt in the work area. Awaiting your approval before any evacuation starts.',
     bmkgNone: 'No alerts.',
     depth: (d, t) => `Depth ${d} km · ${t}`,
     draft: 'Draft — not approved',

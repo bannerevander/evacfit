@@ -367,7 +367,7 @@ export const id = {
     emptyTitle: 'Belum ada data',
     emptyBody: 'Aktifkan status darurat untuk melihat keluarga di zona bahaya.',
     bmkgTitle: 'Peringatan BMKG',
-    bmkgLead: 'Gempa M ≥ 5,0 atau dirasakan. Menunggu pengesahan Anda sebelum evakuasi diaktifkan.',
+    bmkgLead: 'Data BMKG langsung (dicek tiap menit): gempa M > 5,0 atau dirasakan di wilayah kerja. Menunggu pengesahan Anda sebelum evakuasi diaktifkan.',
     bmkgNone: 'Tidak ada peringatan.',
     depth: (d: number, t: string) => `Kedalaman ${d} km · ${t}`,
     draft: 'Draf — belum disahkan',

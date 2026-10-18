@@ -18,6 +18,9 @@ Dua mode data, dipilih lewat `VITE_DATA_MODE` (salin `.env.example` ke `.env`):
 | `…03_rpc.sql` | Satu RPC per aksi (`run_matching`, `confirm_assignment`, `reject_assignment`, `check_in`, `set_shelter_status`, …) |
 | `…04_audit_cron.sql` | Trigger audit + `expire_soft_locks()` tiap menit |
 | `…05_seed.sql` | Data contoh (= `src/data/mock.ts`) + 4 akun demo |
+| `…08_bmkg_poll.sql` | `pg_cron` tiap menit memanggil Edge Function `bmkg-poll` lewat `pg_net` |
+
+**Integrasi BMKG (EMER-2/EMER-3).** `supabase/functions/bmkg-poll` membaca data terbuka BMKG (`gempaterkini.json` = gempa M ≥ 5,0, `gempadirasakan.json` = gempa dirasakan), lalu menyimpan gempa M > 5,0 atau dirasakan, ≤ 24 jam, dalam radius wilayah kerja sebagai `disaster_events` berstatus `draft` (deduplikasi lewat `external_event_id`). Tidak ada yang aktif sebelum koordinator mengesahkan draf di panel *Peringatan BMKG*. Draf yang tidak disahkan ditutup otomatis setelah 24 jam. Wilayah kerja bawaan: Medan + 300 km; ubah lewat secret `WORK_AREA_LAT`, `WORK_AREA_LNG`, `WORK_AREA_KM`. Tes: `deno test supabase/functions/bmkg-poll`.
 
 Akun uji (data fiktif). Sementara belum ada auth sungguhan, form masuk menerima email & kata sandi apa saja lalu masuk ke akun peran halaman itu (`demoAccounts` di `src/config.ts`): `koordinator@evacfit.demo`, `posko@evacfit.demo` (Posko Padang Bulan), `relawan@evacfit.demo` (Andi Pratama, van kursi roda), `warga@evacfit.demo` (Keluarga Siregar + 2 keluarga dampingan). Atur ulang data: jalankan `select private.seed_demo();` di SQL Editor.
 
@@ -74,4 +77,3 @@ Coba juga di HP: **Warga → Keluarga → Daftarkan keluarga dampingan** untuk m
 | Greedy matcher: `src/lib/matching.ts` (mode demo) dan `private.match()` di Postgres (mode supabase), syarat wajib & preferensi sama | Google OR-Tools worker (MTCH-1) |
 | Jarak garis lurus × 1,3 | Matriks & rute OpenRouteService profil kursi roda (NAV-1) |
 | Tombol "Simulasikan sinyal putus" | Service Worker + IndexedDB outbox (OFFL-1..5) |
-| Draf gempa BMKG statis | Polling API BMKG (EMER-2) |
