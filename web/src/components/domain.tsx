@@ -1,11 +1,10 @@
 import { MapPin, Users } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { region } from '../config'
 import { useT, type Dict } from '../i18n'
 import { formatKm } from '../lib/geo'
 import { shelterLoad } from '../lib/matching'
 import { needKeys, needSummary } from '../lib/needs'
-import { useStore, type State } from '../state/store'
+import { useRegion, useStore, type State } from '../state/store'
 import type { Family, FunctionalNeeds, Shelter } from '../types'
 import { CheckRow, FeatureBadge, Select, StatusBadge, TextInput } from './ui'
 
@@ -18,6 +17,7 @@ export function usePersona(key: keyof State['persona']): [string, (v: string) =>
 /** REG-2: functional needs only, no diagnosis field (RULE 4). Flat list, no nested selects. */
 export function NeedsChecklist({ value, onChange }: { value: FunctionalNeeds; onChange: (n: FunctionalNeeds) => void }) {
   const d = useT()
+  const { serviceLanguages } = useRegion()
   const set = <K extends keyof FunctionalNeeds>(k: K, v: FunctionalNeeds[K]) => onChange({ ...value, [k]: v })
   return (
     <fieldset className="flex flex-col gap-sm">
@@ -47,7 +47,7 @@ export function NeedsChecklist({ value, onChange }: { value: FunctionalNeeds; on
         <TextInput label={d.form.pregnant} type="number" inputMode="numeric" min={0} value={value.pregnantCount} onChange={(e) => set('pregnantCount', Math.max(0, Number(e.target.value)))} />
       </div>
       <Select label={d.form.language} value={value.preferredLanguage} onChange={(e) => set('preferredLanguage', e.target.value)}>
-        {region.serviceLanguages.map((l) => <option key={l} value={l}>{d.serviceLang(l)}</option>)}
+        {serviceLanguages.map((l) => <option key={l} value={l}>{d.serviceLang(l)}</option>)}
       </Select>
     </fieldset>
   )

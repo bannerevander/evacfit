@@ -34,7 +34,7 @@ export type AlertMsg =
   | { k: 'reallocated'; family: string; shelter: string }
   | { k: 'no_alternative'; family: string }
   | { k: 'synced'; n: number }
-  | { k: 'error'; code: 'no_event' | 'not_found' | 'bad_transition' | 'not_confirmed' | 'vehicle_mismatch' | 'forbidden' | 'server' }
+  | { k: 'error'; code: 'no_event' | 'not_found' | 'bad_transition' | 'not_confirmed' | 'vehicle_mismatch' | 'forbidden' | 'outside_area' | 'server' }
 
 export type FamilyStatus = 'idle' | 'waiting_match' | 'recommended' | 'confirmed' | 'in_transit' | 'arrived' | 'cancelled'
 

@@ -1,12 +1,12 @@
-import { Accessibility, Building2, Check, Languages as LanguagesIcon, LogIn, Save, ShieldAlert, X } from 'lucide-react'
+import { Accessibility, Building2, Check, Languages as LanguagesIcon, LogIn, MapPin, Save, ShieldAlert, X } from 'lucide-react'
 import { useId, useState } from 'react'
 import { NeedBadges, usePersona } from '../components/domain'
+import { LocationPicker } from '../components/LocationPicker'
 import { Button, Card, CheckRow, Dialog, EmptyState, Justification, Meter, PageHeader, Panel, Select, StatusBadge, TextArea, TextInput } from '../components/ui'
-import { region } from '../config'
 import { useT } from '../i18n'
 import { formatKm, formatTime } from '../lib/geo'
 import { facilityTypes, shelterLoad } from '../lib/matching'
-import { useStore } from '../state/store'
+import { useRegion, useStore } from '../state/store'
 import type { Assignment, FacilityType, RejectionCode, Severity, Shelter, ShelterOperationalStatus } from '../types'
 
 function useShelter() {
@@ -267,6 +267,7 @@ export function PoskoFasilitas() {
 function ShelterForm({ shelter, onSave }: { shelter: Shelter; onSave: (s: Shelter) => void }) {
   const d = useT()
   const p = d.posko
+  const { serviceLanguages } = useRegion()
   const [s, setS] = useState(shelter)
   const [msg, setMsg] = useState<'' | 'saved' | 'savedReverify'>('')
   const f = s.features
@@ -277,7 +278,7 @@ function ShelterForm({ shelter, onSave }: { shelter: Shelter; onSave: (s: Shelte
       onSubmit={(e) => {
         e.preventDefault()
         // SHLT-3: changed accessibility claims go back to "Needs Inspection" until re-inspected.
-        const changed = JSON.stringify(s.features) !== JSON.stringify(shelter.features)
+        const changed = JSON.stringify(s.features) !== JSON.stringify(shelter.features) || s.lat !== shelter.lat || s.lng !== shelter.lng
         // Status fields are owned elsewhere (status select, coordinator verification); never overwrite them from this form.
         const next: Shelter = { ...s, operationalStatus: shelter.operationalStatus, verificationStatus: changed ? 'unverified' : shelter.verificationStatus }
         onSave(next)
@@ -293,6 +294,10 @@ function ShelterForm({ shelter, onSave }: { shelter: Shelter; onSave: (s: Shelte
           <TextInput label={p.local} helper={p.localHint} type="number" min={0} value={s.currentOccupancy} onChange={(e) => setS({ ...s, currentOccupancy: Math.max(0, Number(e.target.value)) })} />
         </div>
       </Panel>
+      <Panel title={p.location} icon={MapPin} className="lg:col-span-2" bodyClass="flex flex-col gap-md">
+        <p className="text-body-sm text-text-secondary">{p.locationHint}</p>
+        <LocationPicker value={s} onChange={(pt) => setS({ ...s, ...pt })} />
+      </Panel>
       <Panel title={p.access} icon={Accessibility} tone="green" bodyClass="flex flex-col gap-sm">
         <CheckRow label={p.f.ramp} checked={f.hasRamp} onChange={(v) => setF('hasRamp', v)} />
         <CheckRow label={p.f.slope} checked={f.rampSlopeCompliant} onChange={(v) => setF('rampSlopeCompliant', v)} />
@@ -305,7 +310,7 @@ function ShelterForm({ shelter, onSave }: { shelter: Shelter; onSave: (s: Shelte
       </Panel>
       <Panel title={p.languages} icon={LanguagesIcon} tone="indigo" className="lg:col-span-2">
         <div className="grid gap-sm sm:grid-cols-2 lg:grid-cols-4">
-          {region.serviceLanguages.map((l) => (
+          {serviceLanguages.map((l) => (
             <CheckRow key={l} label={d.serviceLang(l)} checked={f.supportedLanguages.includes(l)} onChange={(v) => setF('supportedLanguages', v ? [...f.supportedLanguages, l] : f.supportedLanguages.filter((x) => x !== l))} />
           ))}
         </div>

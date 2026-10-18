@@ -1,7 +1,7 @@
 // Supabase backend (VITE_DATA_MODE=supabase). Reads go through RLS; every domain write is one Postgres RPC
 // (supabase/migrations/*_rpc.sql), which also owns matching, capacity locks and soft-lock expiry.
 import { createClient } from '@supabase/supabase-js'
-import type { AlertMsg, Assignment, DisasterEvent, Family, Role, Shelter, UnmetNeed, Volunteer } from '../types'
+import type { AlertMsg, Assignment, DisasterEvent, Family, LatLng, Role, Shelter, UnmetNeed, Volunteer } from '../types'
 import type { Action, Alert, State } from './store'
 
 export const dataMode: 'demo' | 'supabase' = import.meta.env.VITE_DATA_MODE === 'supabase' ? 'supabase' : 'demo'
@@ -15,6 +15,9 @@ export interface Profile {
   displayName: string
   shelterId?: string
   volunteerId?: string
+  /** Operation area (RISET §3.1): one BPBD / county / municipality, with its country's settings. */
+  area?: { id: string; name: string; center: LatLng }
+  country?: { code: string; emergencyNumber: string; serviceLanguages: string[] }
 }
 
 type Row = Record<string, unknown>
@@ -64,8 +67,34 @@ export async function fetchAll(): Promise<Remote> {
 export async function fetchProfile(): Promise<Profile | null> {
   const { data } = await supabase!.auth.getUser()
   if (!data.user) return null
-  const row = must(await supabase!.from('profiles').select('*').eq('id', data.user.id).maybeSingle())
-  return row ? (camel(row) as unknown as Profile) : null
+  const row = must(await supabase!.from('profiles')
+    .select('role, display_name, shelter_id, volunteer_id, area:operation_areas(id, name, center_lat, center_lng, country:countries(code, emergency_number, service_languages))')
+    .eq('id', data.user.id).maybeSingle()) as unknown as ProfileRow | null
+  if (!row) return null
+  const a = row.area
+  return {
+    role: row.role as Role,
+    displayName: row.display_name,
+    shelterId: row.shelter_id ?? undefined,
+    volunteerId: row.volunteer_id ?? undefined,
+    area: a ? { id: a.id, name: a.name, center: { lat: a.center_lat, lng: a.center_lng } } : undefined,
+    country: a?.country ? { code: a.country.code, emergencyNumber: a.country.emergency_number, serviceLanguages: a.country.service_languages } : undefined,
+  }
+}
+
+interface ProfileRow {
+  role: string
+  display_name: string
+  shelter_id: string | null
+  volunteer_id: string | null
+  area: { id: string; name: string; center_lat: number; center_lng: number; country: { code: string; emergency_number: string; service_languages: string[] } | null } | null
+}
+
+/** Which served operation area a point falls in (null = outside every area). Supabase mode only. */
+export async function areaAt(p: LatLng): Promise<{ id: string; name: string } | null> {
+  const { data, error } = await supabase!.rpc('area_at', { p_lat: p.lat, p_lng: p.lng })
+  if (error) throw new Error(error.message)
+  return data
 }
 
 /** Action types the server owns. Everything else (language, prefs, alerts, persona) stays in the browser. */
@@ -94,7 +123,7 @@ function call(a: Action): [string, Row] {
   }
 }
 
-const errorCodes = ['no_event', 'not_found', 'bad_transition', 'not_confirmed', 'vehicle_mismatch', 'forbidden'] as const
+const errorCodes = ['no_event', 'not_found', 'bad_transition', 'not_confirmed', 'vehicle_mismatch', 'forbidden', 'outside_area'] as const
 type ErrorCode = Extract<AlertMsg, { k: 'error' }>['code']
 
 /** Runs one action on the server; returns the alerts it produced. Throws with a client error code. */

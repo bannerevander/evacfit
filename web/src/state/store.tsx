@@ -2,6 +2,7 @@
 // (state/remote.ts) and the reducer only holds the latest server snapshot plus browser-only state.
 import { createContext, useCallback, useContext, useEffect, useReducer, useRef, useState, type Dispatch, type ReactNode } from 'react'
 import * as mock from '../data/mock'
+import { region } from '../config'
 import { setFormatLang } from '../i18n/format'
 import { familiesToMatch, matchFamilies } from '../lib/matching'
 import type {
@@ -397,6 +398,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [state.lang])
 
   return <Ctx.Provider value={{ state, dispatch, profile }}>{children}</Ctx.Provider>
+}
+
+/** Country and area settings: from the signed-in account's operation area, else the build's default region (demo / public pages). */
+export function useRegion() {
+  const { profile } = useStore()
+  return {
+    emergencyNumber: profile?.country?.emergencyNumber ?? region.emergencyNumber,
+    serviceLanguages: profile?.country?.serviceLanguages ?? region.serviceLanguages,
+    center: profile?.area?.center ?? region.center,
+    areaName: profile?.area?.name,
+  }
 }
 
 export function useStore() {

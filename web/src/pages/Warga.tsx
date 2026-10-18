@@ -2,24 +2,23 @@
 // 18px text, 60px controls, icon + text everywhere, plain language, read-aloud on key messages.
 import {
   Accessibility, ArrowLeft, ArrowRight, Backpack, Baby, Bus, Check, CircleCheckBig, Clock3, HeartHandshake, Hourglass, House,
-  IdCard, Languages, LocateFixed, MapPin, Navigation, Pencil, Phone, PlugZap, Save, ShieldCheck, Toilet, Truck, UserPlus, Users,
+  IdCard, Languages, MapPin, Navigation, Pencil, Phone, PlugZap, Save, ShieldCheck, Toilet, Truck, UserPlus, Users,
   type LucideIcon,
 } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { usePersona } from '../components/domain'
-import { useLocate } from '../components/FamilyForm'
+import { LocationPicker } from '../components/LocationPicker'
 import {
   Button, ChoiceTile, Counter, FeatureBadge, IconChip, Justification, Meter, ReadAloud, StatusBadge, TextArea, TextInput, buttonCls, toneCls, type Tone,
 } from '../components/ui'
-import { region } from '../config'
 import { citizenFamilyIds, emptyNeeds } from '../data/mock'
 import { dataMode } from '../state/remote'
 import { useT, type Dict } from '../i18n'
 import { distanceKm, formatKm, formatTime } from '../lib/geo'
 import { needKeys } from '../lib/needs'
-import { activeEvent, currentAssignment, useStore, type State } from '../state/store'
-import type { Assignment, Family, FunctionalNeeds, NeedKey, Shelter } from '../types'
+import { activeEvent, currentAssignment, useRegion, useStore, type State } from '../state/store'
+import type { Assignment, Family, FunctionalNeeds, LatLng, NeedKey, Shelter } from '../types'
 
 const needIcon: Record<NeedKey, LucideIcon> = {
   noStairsRequired: Accessibility,
@@ -341,12 +340,12 @@ export function NeedsWizard({ initial, onDone, onCancel }: { initial: Family; on
   const d = useT()
   const w = d.wizard
   const [f, setF] = useState(initial)
+  const { serviceLanguages } = useRegion()
   const [step, setStep] = useState(0)
   const [error, setError] = useState(false)
   const heading = useRef<HTMLHeadingElement>(null)
   const first = useRef(true)
   const setN = <K extends keyof FunctionalNeeds>(k: K, v: FunctionalNeeds[K]) => setF((x) => ({ ...x, needs: { ...x.needs, [k]: v } }))
-  const { msg, locate } = useLocate((lat, lng) => setF((x) => ({ ...x, lat, lng })))
 
   useEffect(() => {
     if (first.current) {
@@ -410,17 +409,9 @@ export function NeedsWizard({ initial, onDone, onCancel }: { initial: Family; on
       hint: w.pickupHint,
       body: (
         <div className="flex flex-col gap-md">
-          <Button size="lg" block icon={LocateFixed} onClick={locate}>{w.useLocation}</Button>
-          <p role="status" className="text-body-md text-text-secondary">{msg}</p>
+          <LocationPicker big value={f} onChange={(p) => setF((x) => ({ ...x, ...p }))} />
           <TextArea big label={w.landmark} helper={w.landmarkHint} value={f.addressNotes} onChange={(e) => setF({ ...f, addressNotes: e.target.value })} />
           <TextInput big label={w.phone} helper={w.phoneHint} type="tel" autoComplete="tel" inputMode="tel" value={f.contactPhone} onChange={(e) => setF({ ...f, contactPhone: e.target.value })} />
-          <details className="rounded-lg border border-border bg-background p-md">
-            <summary className="min-h-12 cursor-pointer py-sm text-body-md font-semibold text-primary">{w.manual}</summary>
-            <div className="mt-sm grid gap-md sm:grid-cols-2">
-              <TextInput label={w.lat} type="number" step="0.00001" value={f.lat} onChange={(e) => setF({ ...f, lat: Number(e.target.value) })} />
-              <TextInput label={w.lng} type="number" step="0.00001" value={f.lng} onChange={(e) => setF({ ...f, lng: Number(e.target.value) })} />
-            </div>
-          </details>
         </div>
       ),
     },
@@ -429,7 +420,7 @@ export function NeedsWizard({ initial, onDone, onCancel }: { initial: Family; on
       body: (
         <fieldset className="flex flex-col gap-sm">
           <legend className="sr-only">{d.form.language}</legend>
-          {region.serviceLanguages.map((l, i) => (
+          {serviceLanguages.map((l, i) => (
             <ChoiceTile key={l} type="radio" name="lang" icon={i === 0 ? Languages : undefined} label={d.serviceLang(l)} checked={f.needs.preferredLanguage === l} onChange={() => setN('preferredLanguage', l)} />
           ))}
         </fieldset>
@@ -511,10 +502,10 @@ export function WargaUbah() {
 
 /* ---------- Supported families ---------- */
 
-const newFamily = (): Family => {
+const newFamily = (center: LatLng): Family => {
   const id = crypto.randomUUID()
   return {
-    id, code: `EVF-${id.slice(0, 4).toUpperCase()}`, familyName: '', memberCount: 1, contactPhone: '', lat: region.center.lat, lng: region.center.lng,
+    id, code: `EVF-${id.slice(0, 4).toUpperCase()}`, familyName: '', memberCount: 1, contactPhone: '', lat: center.lat, lng: center.lng,
     addressNotes: '', status: 'idle', needs: { ...emptyNeeds }, registeredVia: 'caregiver',
   }
 }
@@ -562,7 +553,8 @@ export function WargaBaru() {
   const { dispatch } = useStore()
   const { setFamId } = useMyFamily()
   const navigate = useNavigate()
-  const [initial] = useState(newFamily)
+  const { center } = useRegion()
+  const [initial] = useState(() => newFamily(center))
   return (
     <NeedsWizard
       initial={initial}

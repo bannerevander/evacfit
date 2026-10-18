@@ -1,7 +1,7 @@
 import L from 'leaflet'
 import { Circle, MapContainer, Marker, Polyline, TileLayer, Tooltip } from 'react-leaflet'
-import { region } from '../config'
 import { useT } from '../i18n'
+import { useRegion } from '../state/store'
 import type { DisasterEvent, Family, LatLng, Shelter } from '../types'
 
 // Colours come from DESIGN.md tokens (status palette); markers are flat with a hairline ring, no blurred shadow.
@@ -34,6 +34,7 @@ export function MapView({ event, shelters = [], families = [], line, center, hei
   bare?: boolean
 }) {
   const d = useT()
+  const region = useRegion()
   const c = center ?? event ?? shelters[0] ?? region.center
   return (
     <div className={`map-only relative isolate overflow-hidden ${bare ? '' : 'rounded-lg border border-border'}`} role="region" aria-label={d.a11y.mapRegion(label)}>

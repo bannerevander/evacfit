@@ -4,11 +4,10 @@ import {
 } from 'lucide-react'
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
-import { region } from '../config'
 import { useT, type Dict } from '../i18n'
 import { fmtNum } from '../i18n/format'
 import { dataMode } from '../state/remote'
-import { activeEvent, useStore, type Alert, type State } from '../state/store'
+import { activeEvent, useRegion, useStore, type Alert, type State } from '../state/store'
 import type { Lang } from '../types'
 import { SignOut } from './Gate'
 import { IconChip, type Tone } from './ui'
@@ -301,6 +300,7 @@ function BottomNav({ items, label, big }: { items: NavItem[]; label: string; big
 
 export function CitizenLayout({ items }: { items: NavItem[] }) {
   const d = useT()
+  const { emergencyNumber } = useRegion()
   const main = useFocusMain()
   const { state } = useStore()
   useEffect(() => {
@@ -322,9 +322,9 @@ export function CitizenLayout({ items }: { items: NavItem[] }) {
             <Logo className="hidden h-7 min-[360px]:block" />
           </Link>
           {/* Consistent help (WCAG 3.2.6): the emergency call is in the same place on every citizen screen. */}
-          <a href={`tel:${region.emergencyNumber}`} className="pressable inline-flex min-h-12 items-center gap-xs rounded-md bg-accent-emergency px-sm text-body-md font-bold text-text-on-primary hover:bg-accent-emergency-hover">
+          <a href={`tel:${emergencyNumber}`} className="pressable inline-flex min-h-12 items-center gap-xs rounded-md bg-accent-emergency px-sm text-body-md font-bold text-text-on-primary hover:bg-accent-emergency-hover">
             <Phone aria-hidden className="h-5 w-5" />
-            {region.emergencyNumber}<span className="sr-only"> — {d.emergency.call}</span>
+            {emergencyNumber}<span className="sr-only"> — {d.emergency.call}</span>
           </a>
           <DisplayMenu />
           <SignOut />

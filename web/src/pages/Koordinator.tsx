@@ -4,9 +4,9 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { NeedBadges, ShelterCard } from '../components/domain'
+import { LocationPicker } from '../components/LocationPicker'
 import { MapLegend, MapView } from '../components/MapView'
 import { Button, Card, Dialog, EmptyState, IconChip, Meter, PageHeader, Panel, Select, StatusBadge, TextInput, type Tone } from '../components/ui'
-import { region } from '../config'
 import { floodScenario } from '../data/mock'
 import { dataMode } from '../state/remote'
 import { useT, type Dict } from '../i18n'
@@ -14,7 +14,7 @@ import { fmtNum } from '../i18n/format'
 import { distanceKm, formatTime } from '../lib/geo'
 import { shelterLoad } from '../lib/matching'
 import { vehicleFits } from '../state/machine'
-import { activeEvent, currentAssignment, useStore } from '../state/store'
+import { activeEvent, currentAssignment, useRegion, useStore } from '../state/store'
 import type { DisasterEvent, DisasterType, Family, Severity, UnmetNeed } from '../types'
 
 const severityCls: Record<Severity, string> = {
@@ -34,7 +34,8 @@ function ActivateDialog({ open, onClose, draft }: { open: boolean; onClose: () =
   const k = d.koord
   const { dispatch } = useStore()
   // Demo mode pre-fills the rehearsed flood scenario; the live app starts from the region centre with a blank title.
-  const prefill = dataMode === 'demo' ? floodScenario : { type: 'flood' as const, title: '', ...region.center, radiusKm: 2 }
+  const { center } = useRegion()
+  const prefill = dataMode === 'demo' ? floodScenario : { type: 'flood' as const, title: '', ...center, radiusKm: 2 }
   const [type, setType] = useState<DisasterType>(draft?.type ?? prefill.type)
   const [title, setTitle] = useState(draft?.title ?? prefill.title)
   const [lat, setLat] = useState(draft?.lat ?? prefill.lat)
@@ -57,10 +58,10 @@ function ActivateDialog({ open, onClose, draft }: { open: boolean; onClose: () =
           {(Object.keys(d.disasterType) as DisasterType[]).map((t) => <option key={t} value={t}>{d.disasterType[t]}</option>)}
         </Select>
         <TextInput label={k.eventTitle} required value={title} onChange={(e) => setTitle(e.target.value)} />
-        <div className="grid gap-md sm:grid-cols-2">
-          <TextInput label={k.lat} type="number" step="0.0001" required value={lat} onChange={(e) => setLat(Number(e.target.value))} />
-          <TextInput label={k.lng} type="number" step="0.0001" required value={lng} onChange={(e) => setLng(Number(e.target.value))} />
-        </div>
+        <fieldset className="flex flex-col gap-sm">
+          <legend className="mb-xs text-body-md font-semibold text-text-primary">{k.centre}</legend>
+          <LocationPicker value={{ lat, lng }} onChange={(p) => { setLat(p.lat); setLng(p.lng) }} />
+        </fieldset>
         <TextInput label={k.radius} type="number" step="0.1" min={0.1} required value={radius} onChange={(e) => setRadius(Number(e.target.value))} />
         <p className="text-body-sm text-text-secondary">{k.humanInLoop}</p>
         <div className="flex flex-col gap-sm sm:flex-row-reverse">

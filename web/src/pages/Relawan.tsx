@@ -4,12 +4,11 @@ import { NeedBadges, usePersona } from '../components/domain'
 import { FamilyForm } from '../components/FamilyForm'
 import { MapView } from '../components/MapView'
 import { Button, EmptyState, PageHeader, StatusBadge, buttonCls } from '../components/ui'
-import { region } from '../config'
 import { emptyNeeds } from '../data/mock'
 import { useT, type Dict } from '../i18n'
 import { etaMinutes, formatKm, formatTime } from '../lib/geo'
-import { useStore } from '../state/store'
-import type { Family } from '../types'
+import { useRegion, useStore } from '../state/store'
+import type { Family, LatLng } from '../types'
 
 /** Pending field changes. Only shown when something is queued; the connection toggle lives in the top bar. */
 function Outbox() {
@@ -112,15 +111,16 @@ export function RelawanTugas() {
   )
 }
 
-const triageFamily = (d: Dict): Family => {
+const triageFamily = (d: Dict, center: LatLng): Family => {
   const id = crypto.randomUUID()
   return {
-    id, code: `OFF-${id.slice(0, 4).toUpperCase()}`, familyName: '', memberCount: 1, contactPhone: '', lat: region.center.lat, lng: region.center.lng,
+    id, code: `OFF-${id.slice(0, 4).toUpperCase()}`, familyName: '', memberCount: 1, contactPhone: '', lat: center.lat, lng: center.lng,
     addressNotes: d.relawan.triagePickup, status: 'idle', needs: { ...emptyNeeds }, registeredVia: 'field_triage',
   }
 }
 
 export function RelawanTriage() {
+  const { center } = useRegion()
   const d = useT()
   const r = d.relawan
   const { state, dispatch } = useStore()
@@ -140,7 +140,7 @@ export function RelawanTriage() {
       )}
       <FamilyForm
         key={formKey}
-        initial={triageFamily(d)}
+        initial={triageFamily(d, center)}
         submitLabel={r.triageSubmit}
         onSaved={(f) => {
           dispatch({ type: 'save_family', family: f })
