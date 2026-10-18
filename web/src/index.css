@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply font-sans text-body-md text-text-primary bg-background antialiased;
+  }
+  /* DESIGN.md §Elevation: 2px #1D4ED8 focus outline, 2px offset, on every tabbable element. */
+  :focus-visible {
+    outline: 2px solid theme('colors.border-focus');
+    outline-offset: 2px;
+  }
+  /* "Teks Sederhana": larger base text, maps hidden in favour of the list view. */
+  html[data-simple='on'] {
+    font-size: 112.5%;
+  }
+  html[data-simple='on'] .map-only {
+    display: none;
+  }
+  /* "Mode Kontras Tinggi": secondary text and hairlines go to full slate. */
+  html[data-contrast='high'] .text-text-secondary,
+  html[data-contrast='high'] .text-text-muted {
+    color: theme('colors.text-primary');
+  }
+  html[data-contrast='high'] .border-border,
+  html[data-contrast='high'] .border-text-muted {
+    border-color: theme('colors.text-primary');
+  }
+  html[data-contrast='high'] a {
+    text-decoration: underline;
+  }
+  button,
+  a,
+  label,
+  summary {
+    touch-action: manipulation;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+}
+
+/* Motion: DESIGN.md caps transitions at 150ms. Every rule is neutralised by prefers-reduced-motion above. */
+@layer utilities {
+  .enter {
+    animation: enter 150ms ease-out both;
+  }
+  .pressable {
+    transition: transform 100ms ease-out, background-color 120ms ease-out, border-color 120ms ease-out;
+  }
+  .pressable:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+  .live-dot {
+    animation: live 1.6s ease-in-out infinite;
+  }
+  .pb-safe {
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Transform only: content stays fully readable even if the animation is paused (background tab, slow device). */
+@keyframes enter {
+  from {
+    transform: translateY(6px);
+  }
+}
+
+@keyframes live {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* Leaflet markers (MapView). Flat, white ring + hairline outline so they read on any tile colour. */
+.ef-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 1px rgb(15 23 42 / 0.45);
+}
+.ef-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 1px rgb(15 23 42 / 0.45);
+}
