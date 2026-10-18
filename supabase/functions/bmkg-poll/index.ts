@@ -9,11 +9,13 @@ const FEEDS = [
   { url: 'https://data.bmkg.go.id/DataMKG/TEWS/gempadirasakan.json', felt: true }, // 15 latest felt quakes
 ]
 
-// Work area (EMER-2 "wilayah kerja"): default Medan + 300 km; override per deployment with secrets.
+// Work area (EMER-2 "wilayah kerja"): default = all of Indonesia (centre -2.5, 118; 2800 km reaches Sabang and Merauke).
+// A Sumatra-only circle produced no live drafts most days (about one M>5 per month there), so the national default keeps
+// the alert panel live. Narrow it per deployment with secrets, e.g. one BPBD region: WORK_AREA_LAT=3.58 WORK_AREA_LNG=98.68 WORK_AREA_KM=300.
 const area: WorkArea = {
-  lat: Number(Deno.env.get('WORK_AREA_LAT') ?? 3.58),
-  lng: Number(Deno.env.get('WORK_AREA_LNG') ?? 98.68),
-  km: Number(Deno.env.get('WORK_AREA_KM') ?? 300),
+  lat: Number(Deno.env.get('WORK_AREA_LAT') ?? -2.5),
+  lng: Number(Deno.env.get('WORK_AREA_LNG') ?? 118),
+  km: Number(Deno.env.get('WORK_AREA_KM') ?? 2800),
 }
 
 const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
