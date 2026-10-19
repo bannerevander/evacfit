@@ -1,5 +1,10 @@
 import { fmtNum, fmtTime } from '../i18n/format'
-import type { FunctionalNeeds, LatLng } from '../types'
+import type { Family, FunctionalNeeds, LatLng } from '../types'
+
+/** Pickup point: the location reported during the emergency, else the registered home (mirrors family_units.geog). */
+export function pickupOf(f: Family): LatLng {
+  return f.currentLat != null && f.currentLng != null ? { lat: f.currentLat, lng: f.currentLng } : f
+}
 
 /** Straight-line distance. Real route distance comes from OpenRouteService once the backend exists. */
 export function distanceKm(a: LatLng, b: LatLng): number {

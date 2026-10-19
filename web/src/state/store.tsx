@@ -6,7 +6,7 @@ import { region } from '../config'
 import { setFormatLang } from '../i18n/format'
 import { familiesToMatch, matchFamilies } from '../lib/matching'
 import type {
-  AlertMsg, Assignment, AssignmentStatus, DisasterEvent, Family, FacilityType, Lang, OutboxItem, RejectionCode, Severity, Shelter, ShelterOperationalStatus, UnmetNeed, Volunteer,
+  AlertMsg, Assignment, AssignmentStatus, DisasterEvent, Family, FacilityType, Lang, LatLng, OutboxItem, RejectionCode, Severity, Shelter, ShelterOperationalStatus, UnmetNeed, Volunteer,
 } from '../types'
 import { canTransition, expiredLocks, SOFT_LOCK_MINUTES, vehicleFits } from './machine'
 import { dataMode, fetchAll, fetchProfile, RemoteError, remoteActions, send, supabase, type Profile, type Remote } from './remote'
@@ -46,6 +46,8 @@ export type Action =
   | { type: 'check_in'; id: string; unmet?: { type: FacilityType; description: string; severity: Severity } }
   | { type: 'save_family'; family: Family }
   | { type: 'save_shelter'; shelter: Shelter }
+  | { type: 'create_shelter'; shelter: Shelter }
+  | { type: 'report_location'; familyId: string; at: LatLng | null }
   | { type: 'set_shelter_status'; id: string; status: ShelterOperationalStatus }
   | { type: 'expire_locks' }
   | { type: 'verify_shelter'; id: string; verified: boolean }
@@ -236,6 +238,13 @@ function reduce(s: State, a: Action): State {
     }
     case 'save_shelter':
       return { ...s, shelters: s.shelters.map((x) => (x.id === a.shelter.id ? a.shelter : x)) }
+    case 'create_shelter':
+      return { ...s, shelters: [...s.shelters, { ...a.shelter, operationalStatus: 'open', verificationStatus: 'unverified' }] }
+    case 'report_location':
+      return {
+        ...s,
+        families: s.families.map((f) => (f.id === a.familyId ? { ...f, currentLat: a.at?.lat, currentLng: a.at?.lng, currentAt: a.at ? now() : undefined } : f)),
+      }
     case 'verify_shelter':
       return { ...s, shelters: s.shelters.map((x) => (x.id === a.id ? { ...x, verificationStatus: a.verified ? 'verified' : 'unverified' } : x)) }
     case 'resolve_unmet':

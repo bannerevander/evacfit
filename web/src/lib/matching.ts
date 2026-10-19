@@ -2,7 +2,7 @@
 // hard constraints (MTCH-2) and preferences (MTCH-3/4) so the UI can be designed now; replace with the
 // backend /matching-runs call when the solver service exists.
 import type { Assignment, AssignmentStatus, DisasterEvent, Family, FacilityType, MatchReason, NeedKey, Severity, Shelter, UnmetDetail } from '../types'
-import { distanceKm, vulnerabilityScore } from './geo'
+import { distanceKm, pickupOf, vulnerabilityScore } from './geo'
 
 export const ACTIVE_STATUSES: AssignmentStatus[] = ['recommended', 'confirmed', 'in_transit']
 
@@ -137,7 +137,7 @@ export function matchFamilies({ families, shelters, assignments, event, familyId
       const l = loads.get(s.id)!
       if (l.remaining < f.memberCount) continue
       if (!needChecks.every((c) => !applies(f, c) || c.ok(f, s, l))) continue
-      const d = distanceKm(f, s)
+      const d = distanceKm(pickupOf(f), s)
       const cost =
         d +
         (!special && isAccessibleShelter(s) ? 5 : 0) + // MTCH-3: keep accessible space free
@@ -159,6 +159,6 @@ export function matchFamilies({ families, shelters, assignments, event, familyId
 /** Families inside the hazard radius that still need a place. */
 export function familiesToMatch(families: Family[], event: DisasterEvent): string[] {
   return families
-    .filter((f) => (f.status === 'idle' || f.status === 'waiting_match') && distanceKm(f, event) <= event.radiusKm)
+    .filter((f) => (f.status === 'idle' || f.status === 'waiting_match') && distanceKm(pickupOf(f), event) <= event.radiusKm)
     .map((f) => f.id)
 }

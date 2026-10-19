@@ -31,7 +31,8 @@ Akun uji (data fiktif). Sementara belum ada auth sungguhan, form masuk menerima 
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173
+npm run dev        # http://localhost:5173 (mode dari .env)
+npm run dev:demo   # mode demo: data di browser, tanpa Supabase (cadangan live pitch; peta tetap butuh internet)
 npm run check      # self-check pencocokan & state machine
 npm run build      # typecheck + build produksi
 ```

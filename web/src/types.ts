@@ -78,6 +78,10 @@ export interface Family extends LatLng {
   status: FamilyStatus
   needs: FunctionalNeeds
   registeredVia: 'self' | 'caregiver' | 'field_triage'
+  /** Where the family is right now, reported during an emergency; overrides lat/lng as the pickup point. */
+  currentLat?: number
+  currentLng?: number
+  currentAt?: string
 }
 
 export interface ShelterFeatures {

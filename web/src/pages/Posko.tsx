@@ -264,7 +264,7 @@ export function PoskoFasilitas() {
   )
 }
 
-function ShelterForm({ shelter, onSave }: { shelter: Shelter; onSave: (s: Shelter) => void }) {
+export function ShelterForm({ shelter, onSave }: { shelter: Shelter; onSave: (s: Shelter) => void }) {
   const d = useT()
   const p = d.posko
   const { serviceLanguages } = useRegion()

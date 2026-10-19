@@ -40,6 +40,11 @@ const held: Assignment[] = placements.map((p, i) => ({
 const again = matchFamilies({ families, shelters, assignments: held, event, familyIds: unmet.map((u) => u.familyId) })
 assert.equal(again.placements.length, 0, 'unmet families stay unmet when nothing changed')
 
+// RISET §3.2: a location reported during the emergency is the pickup point; home stays registered.
+const away = { ...families[0], currentLat: 3.605, currentLng: 98.635 }
+assert.equal(familiesToMatch([away], event).length, 0, 'family reported outside the zone is not evacuated from home')
+assert.equal(familiesToMatch([families[0]], event).length, 1)
+
 assert.ok(canTransition('recommended', 'confirmed'))
 assert.ok(!canTransition('recommended', 'in_transit'), 'RULE 5: no departure before confirmation')
 assert.ok(!canTransition('arrived', 'recommended'))

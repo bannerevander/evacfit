@@ -6,7 +6,7 @@ import { MapView } from '../components/MapView'
 import { Button, EmptyState, PageHeader, StatusBadge, buttonCls } from '../components/ui'
 import { emptyNeeds } from '../data/mock'
 import { useT, type Dict } from '../i18n'
-import { etaMinutes, formatKm, formatTime } from '../lib/geo'
+import { etaMinutes, formatKm, formatTime, pickupOf } from '../lib/geo'
 import { useRegion, useStore } from '../state/store'
 import type { Family, LatLng } from '../types'
 
@@ -46,6 +46,7 @@ export function RelawanTugas() {
             const f = state.families.find((x) => x.id === a.familyId)!
             const sh = state.shelters.find((s) => s.id === a.shelterId)!
             const eta = etaMinutes(a.distanceKm, f.needs)
+            const at = pickupOf(f)
             return (
               <li key={a.id} className="grid overflow-hidden rounded-lg border border-border bg-background lg:grid-cols-2">
                 <div className="flex flex-col gap-md p-5">
@@ -70,7 +71,9 @@ export function RelawanTugas() {
                   <dl className="grid gap-sm rounded-md bg-surface p-md text-body-md">
                     <div>
                       <dt className="flex items-center gap-xs text-body-sm text-text-secondary"><MapPin aria-hidden className="h-4 w-4" />{r.pickup}</dt>
-                      <dd className="font-semibold">{f.addressNotes || '—'} <span className="font-mono text-caption text-text-secondary">({f.lat.toFixed(4)}, {f.lng.toFixed(4)})</span></dd>
+                      <dd className="font-semibold">
+                        {f.currentAt ? r.currentPickup(formatTime(f.currentAt)) : f.addressNotes || '—'} <span className="font-mono text-caption text-text-secondary">({at.lat.toFixed(4)}, {at.lng.toFixed(4)})</span>
+                      </dd>
                     </div>
                     <div>
                       <dt className="flex items-center gap-xs text-body-sm text-text-secondary"><Navigation aria-hidden className="h-4 w-4" />{r.destination}</dt>
@@ -83,11 +86,11 @@ export function RelawanTugas() {
                   </dl>
                 </div>
                 <div className="flex flex-col gap-sm border-t border-border bg-surface p-md lg:border-l lg:border-t-0">
-                  <MapView label={r.mapLabel(f.familyName)} center={f} shelters={[sh]} families={[f]} line={[f, sh]} height="clamp(220px, 40vh, 300px)" />
+                  <MapView label={r.mapLabel(f.familyName)} center={at} shelters={[sh]} families={[f]} line={[at, sh]} height="clamp(220px, 40vh, 300px)" />
                   <p className="text-body-sm text-text-secondary">{r.routeNote}</p>
                   <a
                     className="inline-flex min-h-12 items-center gap-sm self-start rounded-md px-sm font-semibold text-primary underline"
-                    href={`https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${f.lat},${f.lng};${sh.lat},${sh.lng}`}
+                    href={`https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${at.lat},${at.lng};${sh.lat},${sh.lng}`}
                     target="_blank"
                     rel="noreferrer"
                   >

@@ -100,7 +100,7 @@ export async function areaAt(p: LatLng): Promise<{ id: string; name: string } | 
 /** Action types the server owns. Everything else (language, prefs, alerts, persona) stays in the browser. */
 export const remoteActions = new Set<Action['type']>([
   'activate_event', 'close_event', 'run_matching', 'confirm', 'reject', 'ready', 'dispatch', 'depart', 'check_in',
-  'save_family', 'save_shelter', 'set_shelter_status', 'verify_shelter', 'resolve_unmet',
+  'save_family', 'save_shelter', 'create_shelter', 'report_location', 'set_shelter_status', 'verify_shelter', 'resolve_unmet',
 ])
 
 function call(a: Action): [string, Row] {
@@ -116,6 +116,8 @@ function call(a: Action): [string, Row] {
     case 'check_in': return ['check_in', { p_id: a.id, p_unmet: a.unmet ?? null }]
     case 'save_family': return ['save_family', { f: a.family }]
     case 'save_shelter': return ['save_shelter', { s: a.shelter }]
+    case 'create_shelter': return ['create_shelter', { s: a.shelter }]
+    case 'report_location': return ['report_location', { p_family: a.familyId, p_lat: a.at?.lat ?? null, p_lng: a.at?.lng ?? null }]
     case 'set_shelter_status': return ['set_shelter_status', { p_id: a.id, p_status: a.status }]
     case 'verify_shelter': return ['verify_shelter', { p_id: a.id, p_verified: a.verified }]
     case 'resolve_unmet': return ['resolve_unmet', { p_id: a.id, p_status: a.status }]

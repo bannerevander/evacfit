@@ -2,20 +2,20 @@
 // 18px text, 60px controls, icon + text everywhere, plain language, read-aloud on key messages.
 import {
   Accessibility, ArrowLeft, ArrowRight, Backpack, Baby, Bus, Check, CircleCheckBig, Clock3, HeartHandshake, Hourglass, House,
-  IdCard, Languages, MapPin, Navigation, Pencil, Phone, PlugZap, Save, ShieldCheck, Toilet, Truck, UserPlus, Users,
+  IdCard, Languages, LocateFixed, MapPin, Navigation, Pencil, Phone, PlugZap, Save, ShieldCheck, Toilet, Truck, UserPlus, Users,
   type LucideIcon,
 } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { usePersona } from '../components/domain'
-import { LocationPicker } from '../components/LocationPicker'
+import { LocationPicker, useLocate } from '../components/LocationPicker'
 import {
   Button, ChoiceTile, Counter, FeatureBadge, IconChip, Justification, Meter, ReadAloud, StatusBadge, TextArea, TextInput, buttonCls, toneCls, type Tone,
 } from '../components/ui'
 import { citizenFamilyIds, emptyNeeds } from '../data/mock'
 import { dataMode } from '../state/remote'
 import { useT, type Dict } from '../i18n'
-import { distanceKm, formatKm, formatTime } from '../lib/geo'
+import { distanceKm, formatKm, formatTime, pickupOf } from '../lib/geo'
 import { needKeys } from '../lib/needs'
 import { activeEvent, currentAssignment, useRegion, useStore, type State } from '../state/store'
 import type { Assignment, Family, FunctionalNeeds, LatLng, NeedKey, Shelter } from '../types'
@@ -161,6 +161,38 @@ function FamilySwitch() {
   )
 }
 
+/** RISET §3.2: during an emergency people are often not at home; let them send where they are without touching the home address. */
+function WhereNow({ fam }: { fam: Family }) {
+  const d = useT()
+  const w = d.warga.here
+  const { dispatch } = useStore()
+  const [picking, setPicking] = useState(false)
+  const [pt, setPt] = useState<LatLng>(pickupOf(fam))
+  const send = (at: LatLng | null) => {
+    dispatch({ type: 'report_location', familyId: fam.id, at })
+    setPicking(false)
+  }
+  const { msg, locate } = useLocate((lat, lng) => send({ lat, lng }))
+  return (
+    <section aria-labelledby="here-title" className="rounded-lg border-2 border-accent-emergency bg-background p-5">
+      <h2 id="here-title" className="text-h2 text-text-primary">{w.title}</h2>
+      <p role="status" className="mt-xs text-body-lg text-text-primary">{fam.currentAt ? w.usingCurrent(formatTime(fam.currentAt)) : w.usingHome}</p>
+      <div className="mt-md flex flex-col gap-sm">
+        <Button size="lg" block icon={LocateFixed} onClick={locate}>{w.sendGps}</Button>
+        {msg && <p className="text-body-md text-text-secondary">{msg}</p>}
+        {fam.currentAt && <Button size="lg" block variant="secondary" icon={House} onClick={() => send(null)}>{w.atHome}</Button>}
+        <Button block variant="secondary" icon={MapPin} aria-expanded={picking} onClick={() => setPicking(!picking)}>{w.pickOnMap}</Button>
+        {picking && (
+          <>
+            <LocationPicker value={pt} onChange={setPt} />
+            <Button size="lg" block onClick={() => send(pt)}>{w.sendPoint}</Button>
+          </>
+        )}
+      </div>
+    </section>
+  )
+}
+
 export function WargaHome() {
   const d = useT()
   const { state, dispatch } = useStore()
@@ -206,6 +238,8 @@ export function WargaHome() {
             <div><ReadAloud text={`${hero.title}. ${hero.body}`} /></div>
           </div>
         </section>
+
+        {activeEvent(state) && fam.status !== 'arrived' && fam.status !== 'cancelled' && <WhereNow key={fam.id} fam={fam} />}
 
         {live && (
           <section aria-labelledby="perjalanan" className="rounded-lg border border-border bg-background p-5">

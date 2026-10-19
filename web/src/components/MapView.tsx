@@ -1,6 +1,7 @@
 import L from 'leaflet'
 import { Circle, MapContainer, Marker, Polyline, TileLayer, Tooltip } from 'react-leaflet'
 import { useT } from '../i18n'
+import { pickupOf } from '../lib/geo'
 import { useRegion } from '../state/store'
 import type { DisasterEvent, Family, LatLng, Shelter } from '../types'
 
@@ -46,7 +47,7 @@ export function MapView({ event, shelters = [], families = [], line, center, hei
           </Circle>
         )}
         {families.map((f) => (
-          <Marker key={f.id} position={[f.lat, f.lng]} icon={familyIcon(familyColor(f))} title={f.familyName} alt={f.familyName}>
+          <Marker key={f.id} position={[pickupOf(f).lat, pickupOf(f).lng]} icon={familyIcon(familyColor(f))} title={f.familyName} alt={f.familyName}>
             <Tooltip>{f.familyName}</Tooltip>
           </Marker>
         ))}

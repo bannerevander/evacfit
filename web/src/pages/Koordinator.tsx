@@ -1,11 +1,12 @@
 import {
-  AlertOctagon, BarChart3, Building2, CircleCheckBig, Clock3, Download, Hourglass, Map as MapIcon, Play, Power, Printer, RadioTower, RefreshCw, ShieldCheck,
+  AlertOctagon, BarChart3, Building2, CircleCheckBig, Clock3, Download, Hourglass, Map as MapIcon, Play, Plus, Power, Printer, RadioTower, RefreshCw, ShieldCheck,
   ShieldOff, Siren, Truck, UserCheck, Users, type LucideIcon,
 } from 'lucide-react'
 import { useState } from 'react'
 import { NeedBadges, ShelterCard } from '../components/domain'
 import { LocationPicker } from '../components/LocationPicker'
 import { MapLegend, MapView } from '../components/MapView'
+import { ShelterForm } from './Posko'
 import { Button, Card, Dialog, EmptyState, IconChip, Meter, PageHeader, Panel, Select, StatusBadge, TextInput, type Tone } from '../components/ui'
 import { floodScenario } from '../data/mock'
 import { dataMode } from '../state/remote'
@@ -15,7 +16,7 @@ import { distanceKm, formatTime } from '../lib/geo'
 import { shelterLoad } from '../lib/matching'
 import { vehicleFits } from '../state/machine'
 import { activeEvent, currentAssignment, useRegion, useStore } from '../state/store'
-import type { DisasterEvent, DisasterType, Family, Severity, UnmetNeed } from '../types'
+import type { DisasterEvent, DisasterType, Family, LatLng, Severity, Shelter, UnmetNeed } from '../types'
 
 const severityCls: Record<Severity, string> = {
   critical: 'bg-tint-rejected text-status-rejected',
@@ -412,13 +413,37 @@ export function KoordinatorBacklog() {
   )
 }
 
+/** SHLT-1: a blank shelter in the coordinator's own area; it starts unverified until inspected. */
+function blankShelter(center: LatLng, language: string): Shelter {
+  return {
+    id: `sh-${crypto.randomUUID().slice(0, 8)}`, name: '', address: '', contact: '', ...center, totalCapacity: 0, currentOccupancy: 0,
+    operationalStatus: 'open', verificationStatus: 'unverified',
+    features: {
+      hasRamp: false, rampSlopeCompliant: false, doorWidthAccessible: false, hasAccessibleToilet: false, accessibleToiletCount: 0,
+      hasMedicalPower: false, backupGeneratorCapacityWatt: 0, hasCaregiverRooms: false, supportedLanguages: [language],
+    },
+  }
+}
+
 export function KoordinatorPosko() {
   const d = useT()
   const k = d.koord
   const { state, dispatch } = useStore()
+  const { center, serviceLanguages } = useRegion()
+  const [adding, setAdding] = useState<Shelter>()
   return (
     <>
-      <PageHeader eyebrow={d.roles.coordinator} title={k.verifyTitle} description={k.verifyLead} />
+      <PageHeader
+        eyebrow={d.roles.coordinator}
+        title={k.verifyTitle}
+        description={k.verifyLead}
+        actions={<Button icon={Plus} onClick={() => setAdding(blankShelter(center, serviceLanguages[0]))}>{k.addShelter}</Button>}
+      />
+      {adding && (
+        <Dialog open onClose={() => setAdding(undefined)} title={k.addShelter}>
+          <ShelterForm shelter={adding} onSave={(s) => { dispatch({ type: 'create_shelter', shelter: s }); setAdding(undefined) }} />
+        </Dialog>
+      )}
       <ul className="grid gap-md lg:grid-cols-2">
         {state.shelters.map((s) => (
           <li key={s.id}>
