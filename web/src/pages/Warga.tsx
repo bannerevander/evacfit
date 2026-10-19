@@ -239,7 +239,8 @@ export function WargaHome() {
           </div>
         </section>
 
-        {activeEvent(state) && fam.status !== 'arrived' && fam.status !== 'cancelled' && <WhereNow key={fam.id} fam={fam} />}
+        {/* Not while being referred between shelters: they are at a shelter, the pickup point is set for them. */}
+        {activeEvent(state) && fam.status !== 'arrived' && fam.status !== 'cancelled' && !live?.reason.pickupShelter && <WhereNow key={fam.id} fam={fam} />}
 
         {live && (
           <section aria-labelledby="perjalanan" className="rounded-lg border border-border bg-background p-5">

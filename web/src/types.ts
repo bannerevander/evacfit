@@ -18,6 +18,10 @@ export interface MatchReason {
   km: number
   /** Needs this shelter cannot meet yet: a temporary, safety-first placement (prepare, or refer after arrival). */
   gaps?: NeedKey[]
+  /** Referral: pick the family up at this shelter (they are there, not at home). */
+  pickupShelter?: string
+  /** On the origin shelter's record: where a referred family is going. */
+  referredTo?: string
   /** Last resort: no shelter outside the hazard zone had room, so this one is inside it. */
   inZone?: boolean
   /** Set when the OR-Tools solver chose this placement (otherwise the greedy matcher did). */

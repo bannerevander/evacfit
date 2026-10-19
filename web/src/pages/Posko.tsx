@@ -219,6 +219,9 @@ export function PoskoKedatangan() {
     return !t || f.code.toLowerCase().includes(t) || f.familyName.toLowerCase().includes(t)
   }
   const groups: ('in_transit' | 'confirmed' | 'arrived')[] = ['in_transit', 'confirmed', 'arrived']
+  // Referred families are still physically here until the volunteer collects them (family status shows progress).
+  const leaving = mine.filter((a) => a.status === 'reallocated' && a.reason.referredTo && match(a)
+    && !['in_transit', 'arrived'].includes(state.families.find((f) => f.id === a.familyId)?.status ?? 'arrived'))
   return (
     <>
       <PageHeader
@@ -268,6 +271,24 @@ export function PoskoKedatangan() {
           )
         })}
       </div>
+      {leaving.length > 0 && (
+        <Panel title={d.posko.count(d.posko.leaving, leaving.length)} icon={ArrowRightLeft} tone="amber" className="mt-lg">
+          <ul className="grid gap-md lg:grid-cols-2">
+            {leaving.map((a) => {
+              const f = state.families.find((x) => x.id === a.familyId)!
+              return (
+                <li key={a.id} className="flex flex-col gap-sm rounded-lg border border-border bg-surface p-md">
+                  <div className="flex flex-wrap items-start justify-between gap-sm">
+                    <h3 className="text-h3">{f.familyName}</h3>
+                    <span className="text-body-sm font-semibold text-text-secondary">{d.familyStatus[f.status]}</span>
+                  </div>
+                  <p className="text-body-md">{d.posko.leavingTo(a.reason.referredTo!)}</p>
+                </li>
+              )
+            })}
+          </ul>
+        </Panel>
+      )}
       <CheckInDialog assignment={checking} onClose={() => setChecking(null)} />
     </>
   )

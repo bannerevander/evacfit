@@ -72,7 +72,7 @@ export function RelawanTugas() {
                     <div>
                       <dt className="flex items-center gap-xs text-body-sm text-text-secondary"><MapPin aria-hidden className="h-4 w-4" />{r.pickup}</dt>
                       <dd className="font-semibold">
-                        {f.currentAt ? r.currentPickup(formatTime(f.currentAt)) : f.addressNotes || '—'} <span className="font-mono text-caption text-text-secondary">({at.lat.toFixed(4)}, {at.lng.toFixed(4)})</span>
+                        {a.reason.pickupShelter ? r.pickupAtShelter(a.reason.pickupShelter) : f.currentAt ? r.currentPickup(formatTime(f.currentAt)) : f.addressNotes || '—'} <span className="font-mono text-caption text-text-secondary">({at.lat.toFixed(4)}, {at.lng.toFixed(4)})</span>
                       </dd>
                     </div>
                     <div>

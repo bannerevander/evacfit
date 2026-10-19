@@ -108,11 +108,11 @@ export const en: Dict = {
   alert: (m: AlertMsg) => {
     switch (m.k) {
       case 'activated': return `Evacuation activated: ${m.title}. ${m.n} families are inside the hazard zone.`
-      case 'matched': return `Optimisation complete${m.engine === 'cp-sat' ? ' (OR-Tools CP-SAT, global solution)' : m.engine === 'greedy' ? ' (fast matcher; solver unavailable)' : ''}: ${m.made} families recommended, ${m.backlog} added to the unmet-needs backlog.`
+      case 'matched': return `Optimisation complete${m.engine === 'cp-sat' ? ' (OR-Tools CP-SAT, global solution)' : m.engine === 'greedy' ? ' (fast matcher; solver unavailable)' : ''}: ${m.made} families recommended, ${m.backlog} without a place yet (see Follow-up).`
       case 'closed': return 'Evacuation operation closed.'
       case 'checkin_unmet': return `Unmet need reported at check-in for ${m.family}: ${facility[m.facility]}.`
       case 'reallocated': return `High priority: ${m.family} reassigned to ${m.shelter}, awaiting shelter confirmation.`
-      case 'no_alternative': return `No alternative shelter for ${m.family}. Added to the unmet-needs backlog.`
+      case 'no_alternative': return `No alternative shelter for ${m.family}. The family has no place yet (see Follow-up).`
       case 'no_referral': return `No shelter meets all of ${m.family}'s needs yet. The family stays safe where they are; try the referral again later.`
       case 'synced': return `${m.n} field changes synced to the server.`
       case 'error':
@@ -159,7 +159,7 @@ export const en: Dict = {
   },
   nav: {
     citizenMenu: 'Resident menu', home: 'Home', needs: 'Needs', family: 'Family',
-    command: 'Command', dispatch: 'Dispatch', backlog: 'Backlog', shelters: 'Shelters',
+    command: 'Command', dispatch: 'Dispatch', backlog: 'Follow-up', shelters: 'Shelters',
     incoming: 'Incoming', checkin: 'Check-in', facilities: 'Facilities',
     tasks: 'Tasks', triage: 'Triage',
   },
@@ -199,7 +199,7 @@ export const en: Dict = {
     citizenCardBody: 'Register your family’s needs and follow your placement status. Designed to be as easy as possible on a phone.',
     staffTitle: 'For responders',
     staff: {
-      coordinator: 'Emergency activation, placement optimisation, fleet dispatch, backlog.',
+      coordinator: 'Emergency activation, placement optimisation, fleet dispatch, needs follow-up.',
       shelter: 'Confirm recommendations, check in arrivals, maintain facility data.',
       field: 'Pickup tasks and emergency registration — keeps working without signal.',
     },
@@ -372,7 +372,7 @@ export const en: Dict = {
     leadIdle: 'Activate an emergency manually or approve a BMKG alert.',
     run: 'Run Global Placement Optimisation',
     activate: 'Activate Emergency',
-    kpi: { waiting: 'Awaiting placement', recommended: 'Recommended', confirmed: 'Confirmed', transit: 'In transit', arrived: 'Arrived', backlog: 'Backlog' },
+    kpi: { waiting: 'Awaiting placement', recommended: 'Recommended', confirmed: 'Confirmed', transit: 'In transit', arrived: 'Arrived', backlog: 'No place yet' },
     kpiLabel: 'Allocation summary',
     progressTitle: 'Evacuation progress',
     progress: (a, n) => `${a} of ${n} families arrived`,
@@ -421,18 +421,23 @@ export const en: Dict = {
     unfit: '(unsuitable: wheelchair vehicle needed)',
     assign: 'Dispatch',
     toShelter: (n, s) => `${n} people → ${s}`,
-    backlogTitle: 'Unmet Needs Backlog',
-    backlogLead: 'Families without a suitable place yet, and the facilities that must be provided urgently.',
-    rerun: 'Re-run for backlog',
+    backlogTitle: 'Needs Follow-up',
+    backlogLead: 'Most urgent first: families with no place, then families who are safe but whose shelter lacks something, then shelter reports.',
+    groupNoPlace: 'No place yet',
+    groupTemp: 'Placed temporarily: shelter lacks facilities',
+    groupReported: 'Reported by shelters at check-in',
+    referNow: 'Refer',
+    referAfterArrival: 'Refer once the family arrives',
+    rerun: 'Re-run placement',
     csv: 'Export CSV',
     print: 'Print / PDF',
-    backlogEmptyTitle: 'No backlog',
-    backlogEmptyBody: 'Every family in the hazard zone has a suitable placement, or optimisation has not run yet.',
+    backlogEmptyTitle: 'Nothing to follow up',
+    backlogEmptyBody: 'Every family in the hazard zone has a suitable place, or placement has not run yet.',
     deficit: 'Deficit summary',
     places: (n) => `${n} places`,
     forFamilies: (n) => `for ${n} ${n === 1 ? 'family' : 'families'}`,
     col: { family: 'Family', missing: 'Missing facility', detail: 'Detail', severity: 'Severity', followUp: 'Follow-up' },
-    backlogCaption: 'Unmet needs backlog',
+    backlogCaption: 'Needs follow-up list',
     reportedBy: (s) => `reported by ${s}`,
     placedAt: (s) => `placed temporarily at ${s}`,
     fromMatching: 'from optimisation',
@@ -479,6 +484,8 @@ export const en: Dict = {
     arrivalsLead: (s) => `${s} · match the family code when a group reaches the gate.`,
     search: 'Search code or name',
     groups: { in_transit: 'On the way', confirmed: 'Confirmed, not yet departed', arrived: 'Arrived' },
+    leaving: 'Waiting to be moved (referred)',
+    leavingTo: (s) => `Referred to ${s}. The family stays here until a volunteer picks them up.`,
     count: (t, n) => `${t} (${n})`,
     deliveredBy: (n, v, p) => `Brought by ${n} · ${v} ${p}`,
     checkin: 'Complete Check-in',
@@ -525,6 +532,7 @@ export const en: Dict = {
     call: 'Call',
     pickup: 'Pickup point',
     currentPickup: (t) => `Current location sent by the resident at ${t}, not the home address`,
+    pickupAtShelter: (s) => `Pick up at ${s}: the family was referred from this shelter, not from home`,
     destination: 'Destination',
     eta: 'Distance & estimated time',
     etaHint: 'Includes extra time for at-risk groups.',

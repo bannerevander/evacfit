@@ -1,6 +1,6 @@
 import {
   AlertOctagon, BarChart3, Building2, CircleCheckBig, Clock3, Download, Hourglass, Map as MapIcon, Play, Plus, Power, Printer, RadioTower, RefreshCw, ShieldCheck,
-  ShieldOff, Siren, Truck, UserCheck, Users, type LucideIcon,
+  ArrowRightLeft, ShieldOff, Siren, Truck, UserCheck, Users, type LucideIcon,
 } from 'lucide-react'
 import { useState } from 'react'
 import { NeedBadges, ShelterCard } from '../components/domain'
@@ -375,9 +375,17 @@ export function KoordinatorBacklog() {
               </li>
             ))}
           </ul>
+          {/* Most urgent first: no place at all, then safe but under-equipped, then shelter reports. */}
+          {([
+            [k.groupNoPlace, open.filter((u) => !u.shelterId)],
+            [k.groupTemp, open.filter((u) => u.shelterId && u.detail?.kind === 'gaps')],
+            [k.groupReported, open.filter((u) => u.shelterId && u.detail?.kind !== 'gaps')],
+          ] as const).filter(([, rows]) => rows.length).map(([title, rows]) => (
+          <section key={title} className="mb-lg">
+          <h2 className="mb-sm text-h3">{title} ({rows.length})</h2>
           <div className="relative overflow-x-auto rounded-lg border border-border bg-background">
             <table className="w-full min-w-[720px] text-left text-body-md">
-              <caption className="sr-only">{k.backlogCaption}</caption>
+              <caption className="sr-only">{k.backlogCaption}: {title}</caption>
               <thead className="bg-surface-subtle text-body-sm text-text-secondary">
                 <tr>
                   <th scope="col" className="p-sm">{k.col.family}</th>
@@ -388,20 +396,24 @@ export function KoordinatorBacklog() {
                 </tr>
               </thead>
               <tbody>
-                {open.map((u) => {
+                {rows.map((u) => {
                   const f = fam(u.familyId)
-                  const sh = u.shelterId && state.shelters.find((s) => s.id === u.shelterId)
+                  const sh = u.shelterId && state.shelters.find((x) => x.id === u.shelterId)
+                  // Referral needs the family to be at that shelter already.
+                  const here = u.shelterId && state.assignments.find((a) => a.familyId === u.familyId && a.shelterId === u.shelterId && a.status === 'arrived')
                   return (
                     <tr key={u.id} className="border-t border-border align-top">
                       <th scope="row" className="p-sm font-semibold">{f?.familyName}<span className="block text-body-sm font-normal text-text-secondary">{d.common.people(f?.memberCount ?? 0)} · {sh ? (u.detail?.kind === 'gaps' ? k.placedAt(sh.name) : k.reportedBy(sh.name)) : k.fromMatching}</span></th>
                       <td className="p-sm">{d.facility[u.missingFacilityType]}</td>
                       <td className="p-sm">{unmetText(u, d)}</td>
                       <td className="p-sm"><SeverityBadge s={u.severity} /></td>
-                      <td className="p-sm">
+                      <td className="flex flex-col gap-xs p-sm">
                         <label className="sr-only" htmlFor={`st-${u.id}`}>{k.statusFor(f?.familyName ?? '')}</label>
                         <select id={`st-${u.id}`} className="min-h-12 rounded-md border border-text-muted bg-background px-sm" value={u.resolutionStatus} onChange={(e) => dispatch({ type: 'resolve_unmet', id: u.id, status: e.target.value as UnmetNeed['resolutionStatus'] })}>
                           {(['open', 'in_progress', 'resolved'] as const).map((r) => <option key={r} value={r}>{d.resolution[r]}</option>)}
                         </select>
+                        {here && <Button variant="secondary" icon={ArrowRightLeft} onClick={() => dispatch({ type: 'refer', id: here.id })}>{k.referNow}</Button>}
+                        {!here && u.detail?.kind === 'gaps' && <span className="text-body-sm text-text-secondary">{k.referAfterArrival}</span>}
                       </td>
                     </tr>
                   )
@@ -409,6 +421,8 @@ export function KoordinatorBacklog() {
               </tbody>
             </table>
           </div>
+          </section>
+          ))}
         </>
       )}
     </>

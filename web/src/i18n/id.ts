@@ -118,11 +118,11 @@ export const id = {
   alert: (m: AlertMsg) => {
     switch (m.k) {
       case 'activated': return `Status evakuasi aktif: ${m.title}. ${m.n} keluarga berada di zona bahaya.`
-      case 'matched': return `Optimasi selesai${m.engine === 'cp-sat' ? ' (OR-Tools CP-SAT, solusi global)' : m.engine === 'greedy' ? ' (pencocokan cepat; solver tidak tersedia)' : ''}: ${m.made} keluarga direkomendasikan, ${m.backlog} masuk backlog kebutuhan tak terpenuhi.`
+      case 'matched': return `Optimasi selesai${m.engine === 'cp-sat' ? ' (OR-Tools CP-SAT, solusi global)' : m.engine === 'greedy' ? ' (pencocokan cepat; solver tidak tersedia)' : ''}: ${m.made} keluarga direkomendasikan, ${m.backlog} belum dapat tempat (lihat Tindak Lanjut).`
       case 'closed': return 'Operasi evakuasi ditutup.'
       case 'checkin_unmet': return `Kebutuhan tak terpenuhi dilaporkan saat check-in ${m.family}: ${facility[m.facility]}.`
       case 'reallocated': return `Prioritas tinggi: ${m.family} dialihkan ke ${m.shelter}, menunggu konfirmasi posko.`
-      case 'no_alternative': return `Tidak ada posko alternatif untuk ${m.family}. Masuk backlog kebutuhan tak terpenuhi.`
+      case 'no_alternative': return `Tidak ada posko alternatif untuk ${m.family}. Keluarga belum dapat tempat (lihat Tindak Lanjut).`
       case 'no_referral': return `Belum ada posko yang memenuhi semua kebutuhan ${m.family}. Keluarga tetap aman di posko sekarang; coba rujuk lagi nanti.`
       case 'synced': return `${m.n} perubahan lapangan berhasil disinkronkan ke server.`
       case 'error':
@@ -169,7 +169,7 @@ export const id = {
   },
   nav: {
     citizenMenu: 'Menu warga', home: 'Beranda', needs: 'Kebutuhan', family: 'Keluarga',
-    command: 'Komando', dispatch: 'Penugasan', backlog: 'Backlog', shelters: 'Posko',
+    command: 'Komando', dispatch: 'Penugasan', backlog: 'Tindak lanjut', shelters: 'Posko',
     incoming: 'Rekomendasi', checkin: 'Check-in', facilities: 'Fasilitas',
     tasks: 'Tugas', triage: 'Triage',
   },
@@ -209,7 +209,7 @@ export const id = {
     citizenCardBody: 'Daftarkan kebutuhan keluarga dan lihat status penempatan. Dibuat semudah mungkin untuk HP.',
     staffTitle: 'Untuk petugas',
     staff: {
-      coordinator: 'Aktivasi darurat, optimasi penempatan, penugasan armada, backlog.',
+      coordinator: 'Aktivasi darurat, optimasi penempatan, penugasan armada, tindak lanjut kebutuhan.',
       shelter: 'Konfirmasi rekomendasi, check-in kedatangan, data fasilitas.',
       field: 'Tugas jemput dan registrasi darurat — tetap jalan saat sinyal putus.',
     },
@@ -382,7 +382,7 @@ export const id = {
     leadIdle: 'Aktifkan status darurat secara manual atau sahkan peringatan BMKG.',
     run: 'Jalankan Optimasi Penempatan Global',
     activate: 'Aktifkan Status Darurat',
-    kpi: { waiting: 'Menunggu penempatan', recommended: 'Direkomendasikan', confirmed: 'Dikonfirmasi', transit: 'Dalam perjalanan', arrived: 'Sudah tiba', backlog: 'Backlog' },
+    kpi: { waiting: 'Menunggu penempatan', recommended: 'Direkomendasikan', confirmed: 'Dikonfirmasi', transit: 'Dalam perjalanan', arrived: 'Sudah tiba', backlog: 'Belum dapat tempat' },
     kpiLabel: 'Ringkasan alokasi',
     progressTitle: 'Progres evakuasi',
     progress: (a: number, n: number) => `${a} dari ${n} keluarga sudah tiba`,
@@ -431,18 +431,23 @@ export const id = {
     unfit: '(tidak sesuai: perlu kendaraan kursi roda)',
     assign: 'Tugaskan',
     toShelter: (n: number, s: string) => `${n} orang → ${s}`,
-    backlogTitle: 'Backlog Kebutuhan Tak Terpenuhi',
-    backlogLead: 'Keluarga yang belum mendapat tempat sesuai, dan fasilitas yang harus segera disediakan.',
-    rerun: 'Jalankan ulang untuk backlog',
+    backlogTitle: 'Tindak Lanjut Kebutuhan',
+    backlogLead: 'Yang paling mendesak di atas: keluarga tanpa tempat, lalu keluarga yang aman tetapi fasilitas poskonya kurang, lalu laporan posko.',
+    groupNoPlace: 'Belum dapat tempat',
+    groupTemp: 'Ditempatkan sementara: fasilitas posko kurang',
+    groupReported: 'Dilaporkan posko saat check-in',
+    referNow: 'Rujuk',
+    referAfterArrival: 'Rujuk setelah keluarga tiba',
+    rerun: 'Jalankan ulang penempatan',
     csv: 'Ekspor CSV',
     print: 'Cetak / PDF',
-    backlogEmptyTitle: 'Tidak ada backlog',
-    backlogEmptyBody: 'Semua keluarga di zona bahaya sudah mendapat penempatan yang sesuai, atau optimasi belum dijalankan.',
+    backlogEmptyTitle: 'Tidak ada tindak lanjut',
+    backlogEmptyBody: 'Semua keluarga di zona bahaya sudah mendapat tempat yang sesuai, atau penempatan belum dijalankan.',
     deficit: 'Ringkasan defisit',
     places: (n: number) => `${n} tempat`,
     forFamilies: (n: number) => `untuk ${n} keluarga`,
     col: { family: 'Keluarga', missing: 'Fasilitas kurang', detail: 'Keterangan', severity: 'Urgensi', followUp: 'Tindak lanjut' },
-    backlogCaption: 'Daftar backlog kebutuhan tak terpenuhi',
+    backlogCaption: 'Daftar tindak lanjut kebutuhan',
     reportedBy: (s: string) => `dilaporkan ${s}`,
     placedAt: (s: string) => `ditempatkan sementara di ${s}`,
     fromMatching: 'hasil optimasi',
@@ -489,6 +494,8 @@ export const id = {
     arrivalsLead: (s: string) => `${s} · cocokkan kode keluarga saat rombongan tiba di gerbang.`,
     search: 'Cari kode atau nama',
     groups: { in_transit: 'Dalam perjalanan', confirmed: 'Dikonfirmasi, belum berangkat', arrived: 'Sudah tiba' },
+    leaving: 'Menunggu dipindahkan (dirujuk)',
+    leavingTo: (s: string) => `Dirujuk ke ${s}. Keluarga masih di sini sampai dijemput relawan.`,
     count: (t: string, n: number) => `${t} (${n})`,
     deliveredBy: (n: string, v: string, p: string) => `Diantar ${n} · ${v} ${p}`,
     checkin: 'Selesai Check-In',
@@ -535,6 +542,7 @@ export const id = {
     call: 'Telepon',
     pickup: 'Titik jemput',
     currentPickup: (t: string) => `Lokasi terkini dari warga (dikirim ${t}), bukan alamat rumah`,
+    pickupAtShelter: (s: string) => `Jemput di ${s}: keluarga dirujuk dari posko ini, bukan dari rumah`,
     destination: 'Tujuan',
     eta: 'Jarak & perkiraan waktu',
     etaHint: 'Sudah memperhitungkan waktu tambahan untuk kelompok rentan.',

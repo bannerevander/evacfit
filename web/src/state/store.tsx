@@ -220,12 +220,21 @@ function reduce(s: State, a: Action): State {
       // After arrival: move on only to a shelter that meets every need; otherwise the family stays where it is safe.
       const as = s.assignments.find((x) => x.id === a.id)
       if (!as) throw new StoreError('not_found')
+      const origin = s.shelters.find((x) => x.id === as.shelterId)!
       let next = move(s, a.id, 'reallocated')
       next = setFamilyStatus(next, [as.familyId], 'waiting_match')
+      // They are at the origin shelter: pick up (and measure distance) from there, not from home.
+      next = { ...next, families: next.families.map((f) => (f.id === as.familyId ? { ...f, currentLat: origin.lat, currentLng: origin.lng, currentAt: now() } : f)) }
       next = match(next, [as.familyId], { [as.familyId]: a.id }, true)
       const family = s.families.find((f) => f.id === as.familyId)!.familyName
       if (currentAssignment(next, as.familyId)?.status !== 'recommended') return alert(s, 'warning', { k: 'no_referral', family })
-      next = { ...next, unmet: next.unmet.map((u) => (u.familyId === as.familyId && u.shelterId === as.shelterId && u.resolutionStatus !== 'resolved' ? { ...u, resolutionStatus: 'resolved' } : u)) }
+      const to = currentAssignment(next, as.familyId)!
+      const dest = s.shelters.find((x) => x.id === to.shelterId)!.name
+      next = {
+        ...next,
+        assignments: next.assignments.map((x) => (x.id === to.id ? { ...x, reason: { ...x.reason, pickupShelter: origin.name } } : x.id === a.id ? { ...x, reason: { ...x.reason, referredTo: dest } } : x)),
+        unmet: next.unmet.map((u) => (u.familyId === as.familyId && u.shelterId === as.shelterId && u.resolutionStatus !== 'resolved' ? { ...u, resolutionStatus: 'resolved' } : u)),
+      }
       return reallocationAlert(next, as.familyId)
     }
     case 'ready':
