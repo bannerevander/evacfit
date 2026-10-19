@@ -95,7 +95,7 @@ export const id = {
   reasonTitle: 'Alasan pencocokan',
   reason: (r: MatchReason, shelter: string) => {
     if (r.gaps?.length) {
-      return `Dikirim dulu ke ${shelter} sebagai posko aman terdekat yang masih punya tempat (±${fmtNum(r.km, 1)} km, ${r.people} orang): keselamatan lebih dulu. Belum tersedia di sini: ${list(r.gaps.map((n) => need[n].short))}. Setelah tiba, keluarga dapat dirujuk ke posko yang sesuai.`
+      return `Dikirim dulu ke ${shelter} sebagai posko aman terdekat yang masih punya tempat (±${fmtNum(r.km, 1)} km, ${r.people} orang): keselamatan lebih dulu. Belum tersedia di sini: ${list(r.gaps.map((n) => need[n].short))}. Setelah tiba, keluarga dapat dirujuk ke posko yang sesuai.${r.inZone ? ' Catatan: posko ini di dalam zona bahaya karena posko di luar zona sudah penuh.' : ''}`
     }
     const met = r.needs.map((n) => (n === 'medicalPowerRequired' && r.powerAvailable !== undefined ? `${need[n].short} terverifikasi (daya tersedia ${fmtNum(r.powerAvailable)} W)` : `${need[n].short} terverifikasi`))
     if (r.language) met.push(`layanan ${serviceLang(r.language)}`)
@@ -104,7 +104,8 @@ export const id = {
       : r.general === 'no_better'
         ? 'tidak ada posko umum yang lebih sesuai'
         : 'keluarga tanpa kebutuhan khusus diarahkan ke posko umum agar posko aksesibel tetap tersedia bagi yang membutuhkan'
-    return `Dialokasikan ke ${shelter} karena ${because}, dengan kapasitas cukup untuk seluruh keluarga (${r.people} orang), jarak ±${fmtNum(r.km, 1)} km (estimasi garis lurus).${r.engine === 'cp-sat' ? ' Dipilih oleh optimasi global OR-Tools agar sebanyak mungkin keluarga rentan mendapat tempat.' : ''}`
+    const zone = r.inZone ? ' Posko di luar zona bahaya sudah penuh, jadi ini posko terdekat yang buka dan terverifikasi di dalam zona.' : ''
+    return `Dialokasikan ke ${shelter} karena ${because}, dengan kapasitas cukup untuk seluruh keluarga (${r.people} orang), jarak ±${fmtNum(r.km, 1)} km (estimasi garis lurus).${r.engine === 'cp-sat' ? ' Dipilih oleh optimasi global OR-Tools agar sebanyak mungkin keluarga rentan mendapat tempat.' : ''}${zone}`
   },
   unmet: (d: UnmetDetail) => {
     const what = list(d.needs.map((n) => need[n].short)) + (d.watt ? ` (${fmtNum(d.watt)} W)` : '')
@@ -470,6 +471,7 @@ export const id = {
     emptyBody: 'Rekomendasi muncul setelah koordinator menjalankan optimasi penempatan.',
     priority: 'Prioritas tinggi: dialihkan dari posko lain',
     gapTitle: 'Siapkan sebelum keluarga tiba',
+    inZone: 'Posko ini berada di dalam zona bahaya: posko di luar zona sudah penuh. Pastikan bangunan aman; ubah status ke Tutup darurat bila tidak.',
     gapBody: (needs: NeedKey[]) => `Posko ini belum memiliki ${list(needs.map((n) => need[n].short))}. Keluarga tetap dikirim ke sini karena paling dekat dan aman.`,
     refer: 'Rujuk ke posko yang sesuai',
     referHint: 'Keluarga hanya dipindah bila ada posko yang memenuhi semua kebutuhannya.',

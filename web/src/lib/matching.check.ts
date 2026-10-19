@@ -22,8 +22,7 @@ const used = new Map<string, { people: number; watt: number }>()
 for (const p of placements) {
   const f = families.find((x) => x.id === p.familyId)!
   const s = shelters.find((x) => x.id === p.shelterId)!
-  assert.ok(shelterUsable(s, event), `${s.id} must be open, verified and outside the zone`)
-  assert.ok(distanceKm(s, event) > event.radiusKm)
+  assert.ok(p.reason.inZone || shelterUsable(s, event), `${s.id} must be open, verified and outside the zone unless flagged`)
   const gap = (n: NeedKey) => !!p.reason.gaps?.includes(n) // a recorded gap is the only allowed exception
   if (f.needs.noStairsRequired && !gap('noStairsRequired')) assert.ok(s.features.hasRamp && s.features.rampSlopeCompliant && s.features.doorWidthAccessible)
   if (f.needs.accessibleToiletNeeded && !gap('accessibleToiletNeeded')) assert.ok(s.features.hasAccessibleToilet)
@@ -70,6 +69,12 @@ assert.equal(
   1,
   'expired recommendation is released; pending, confirmed and lock-less ones are kept',
 )
+
+// City-wide hazard: every shelter is inside the zone, so families still go to the nearest open, verified one, flagged.
+const cityWide: DisasterEvent = { ...event, radiusKm: 100 }
+const wide = matchFamilies({ families, shelters, assignments: [], event: cityWide, familyIds: familiesToMatch(families, cityWide) })
+assert.equal(wide.unmet.filter((u) => !u.shelterId).length, 0, 'no backlog just because the zone covers every shelter')
+assert.ok(wide.placements.length > 0 && wide.placements.every((p) => p.reason.inZone), 'in-zone placements are flagged')
 
 console.log(`ok — ${placements.length} placed, temporary with gaps:`, unmet.map((u) => `${u.familyId} @ ${u.shelterId} (${u.missingFacilityType})`).join(', '))
 for (const p of placements) console.log(' ', p.familyId, '→', p.shelterId)

@@ -79,13 +79,14 @@ function severityOf(f: Family): Severity {
   return s >= 6 ? 'critical' : s >= 3 ? 'high' : s > 0 ? 'medium' : 'low'
 }
 
-function reasonFor(f: Family, s: Shelter, d: number, l: ShelterLoad, gaps: NeedKey[]): MatchReason {
+function reasonFor(f: Family, s: Shelter, d: number, l: ShelterLoad, gaps: NeedKey[], inZone: boolean): MatchReason {
   const all = needChecks.filter((c) => applies(f, c)).map((c) => c.need)
   const needs = all.filter((n) => !gaps.includes(n))
   const lang = f.needs.preferredLanguage !== 'Indonesia' && s.features.supportedLanguages.includes(f.needs.preferredLanguage) ? f.needs.preferredLanguage : undefined
   return {
     needs,
     gaps: gaps.length ? gaps : undefined,
+    inZone: inZone || undefined,
     powerAvailable: f.needs.medicalPowerRequired && !gaps.includes('medicalPowerRequired') ? l.powerRemaining : undefined,
     language: lang,
     general: all.length ? undefined : isAccessibleShelter(s) ? 'no_better' : 'keep_accessible',
@@ -125,7 +126,9 @@ export interface MatchInput {
  */
 export function matchFamilies({ families, shelters, assignments, event, familyIds, excluded = {}, strict = false }: MatchInput) {
   const byId = new Map(families.map((f) => [f.id, f]))
-  const pool = shelters.filter((s) => shelterUsable(s, event))
+  // Outside the hazard zone first; an open, verified shelter inside it is the last resort (city-wide hazards).
+  const pool = shelters.filter((s) => s.operationalStatus === 'open' && s.verificationStatus === 'verified')
+  const inZone = (s: Shelter) => !shelterUsable(s, event)
   const loads = new Map(pool.map((s) => [s.id, shelterLoad(s, assignments, byId)]))
   const placements: Placement[] = []
   const unmet: UnmetDraft[] = []
@@ -138,8 +141,9 @@ export function matchFamilies({ families, shelters, assignments, event, familyId
   for (const f of queue) {
     const special = needChecks.some((c) => applies(f, c))
     let best: { s: Shelter; d: number; cost: number; gaps: NeedKey[] } | undefined
+    for (const zone of [false, true]) {
     let nearest: typeof best
-    for (const s of pool) {
+    for (const s of pool.filter((x) => inZone(x) === zone)) {
       if (excluded[f.id]?.includes(s.id)) continue
       const l = loads.get(s.id)!
       if (l.remaining < f.memberCount) continue
@@ -156,12 +160,14 @@ export function matchFamilies({ families, shelters, assignments, event, familyId
       if (!best || cost < best.cost) best = { s, d, cost, gaps }
     }
     if (!best && !strict) best = nearest
+    if (best) break
+    }
     if (!best) {
       if (!strict) unmet.push(explainUnmet(f, pool, loads))
       continue
     }
     const l = loads.get(best.s.id)!
-    placements.push({ familyId: f.id, shelterId: best.s.id, distanceKm: best.d, reason: reasonFor(f, best.s, best.d, l, best.gaps) })
+    placements.push({ familyId: f.id, shelterId: best.s.id, distanceKm: best.d, reason: reasonFor(f, best.s, best.d, l, best.gaps, inZone(best.s)) })
     if (best.gaps.length) {
       const first = needChecks.find((c) => c.need === best.gaps[0])!
       const watt = best.gaps.includes('medicalPowerRequired') ? f.needs.minPowerWattage : 0

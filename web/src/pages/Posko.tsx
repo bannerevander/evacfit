@@ -7,7 +7,7 @@ import { useT } from '../i18n'
 import { formatKm, formatTime } from '../lib/geo'
 import { facilityTypes, shelterLoad } from '../lib/matching'
 import { useRegion, useStore } from '../state/store'
-import type { Assignment, FacilityType, NeedKey, RejectionCode, Severity, Shelter, ShelterOperationalStatus } from '../types'
+import type { Assignment, FacilityType, RejectionCode, Severity, Shelter, ShelterOperationalStatus } from '../types'
 
 function useShelter() {
   const { state } = useStore()
@@ -58,13 +58,14 @@ function ShelterSummary({ shelter }: { shelter: Shelter }) {
 }
 
 /** Safety-first placement: what this shelter lacks for the family, so staff can prepare (or refer after arrival). */
-function GapNotice({ gaps }: { gaps?: NeedKey[] }) {
+function GapNotice({ reason }: { reason: Assignment['reason'] }) {
   const d = useT()
-  if (!gaps?.length) return null
+  if (!reason.gaps?.length && !reason.inZone) return null
   return (
-    <div role="note" className="rounded-md border-l-4 border-status-unverified bg-tint-unverified p-md">
+    <div role="note" className="flex flex-col gap-xs rounded-md border-l-4 border-status-unverified bg-tint-unverified p-md">
       <p className="flex items-center gap-xs text-body-md font-semibold text-status-unverified"><TriangleAlert aria-hidden className="h-5 w-5" />{d.posko.gapTitle}</p>
-      <p className="mt-xs text-body-sm text-text-primary">{d.posko.gapBody(gaps)}</p>
+      {reason.inZone && <p className="text-body-sm font-semibold text-text-primary">{d.posko.inZone}</p>}
+      {!!reason.gaps?.length && <p className="text-body-sm text-text-primary">{d.posko.gapBody(reason.gaps)}</p>}
     </div>
   )
 }
@@ -145,7 +146,7 @@ export function PoskoRekomendasi() {
                   </p>
                 )}
                 <NeedBadges family={f} />
-                <GapNotice gaps={a.reason.gaps} />
+                <GapNotice reason={a.reason} />
                 <Justification>{d.reason(a.reason, shelter.name)}</Justification>
                 <p className="text-body-sm text-text-secondary">{d.posko.lockUntil(formatTime(a.softLockExpiresAt))}</p>
                 {/* Primary action first and widest; reject is secondary and set apart by colour. */}
@@ -248,7 +249,7 @@ export function PoskoKedatangan() {
                           <StatusBadge status={a.status} />
                         </div>
                         <NeedBadges family={f} />
-                        <GapNotice gaps={a.reason.gaps} />
+                        <GapNotice reason={a.reason} />
                         {vol && <p className="text-body-sm text-text-secondary">{d.posko.deliveredBy(vol.name, d.vehicle[vol.vehicleType], vol.plate)}</p>}
                         {a.status === 'in_transit' && <Button block icon={LogIn} onClick={() => setChecking(a)}>{d.posko.checkin}</Button>}
                         {a.status === 'arrived' && a.arrivedAt && <p className="text-body-sm text-text-secondary">{d.posko.arrivedAt(formatTime(a.arrivedAt))}</p>}

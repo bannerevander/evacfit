@@ -85,7 +85,7 @@ export const en: Dict = {
   reasonTitle: 'Why this match',
   reason: (r: MatchReason, shelter: string) => {
     if (r.gaps?.length) {
-      return `Sent first to ${shelter}, the nearest safe shelter with room (≈${fmtNum(r.km, 1)} km, ${r.people} people): safety comes first. Not available here yet: ${list(r.gaps.map((n) => need[n].short))}. After arrival the family can be referred to a shelter that fits.`
+      return `Sent first to ${shelter}, the nearest safe shelter with room (≈${fmtNum(r.km, 1)} km, ${r.people} people): safety comes first. Not available here yet: ${list(r.gaps.map((n) => need[n].short))}. After arrival the family can be referred to a shelter that fits.${r.inZone ? ' Note: this shelter is inside the hazard zone because shelters outside it are full.' : ''}`
     }
     const met = r.needs.map((n) => (n === 'medicalPowerRequired' && r.powerAvailable !== undefined ? `verified ${need[n].short} (${fmtNum(r.powerAvailable)} W available)` : `verified ${need[n].short}`))
     if (r.language) met.push(`${serviceLang(r.language)} service`)
@@ -94,7 +94,8 @@ export const en: Dict = {
       : r.general === 'no_better'
         ? 'no general shelter was a better fit'
         : 'families without special needs go to general shelters so accessible space stays free for those who need it'
-    return `Assigned to ${shelter} because ${because}, with room for the whole family (${r.people} people), ≈${fmtNum(r.km, 1)} km away (straight-line estimate).${r.engine === 'cp-sat' ? ' Chosen by the OR-Tools global optimisation so that as many vulnerable families as possible get a place.' : ''}`
+    const zone = r.inZone ? ' Shelters outside the hazard zone are full, so this is the nearest open, verified shelter inside it.' : ''
+    return `Assigned to ${shelter} because ${because}, with room for the whole family (${r.people} people), ≈${fmtNum(r.km, 1)} km away (straight-line estimate).${r.engine === 'cp-sat' ? ' Chosen by the OR-Tools global optimisation so that as many vulnerable families as possible get a place.' : ''}${zone}`
   },
   unmet: (d: UnmetDetail) => {
     const what = list(d.needs.map((n) => need[n].short)) + (d.watt ? ` (${fmtNum(d.watt)} W)` : '')
@@ -460,6 +461,7 @@ export const en: Dict = {
     emptyBody: 'Recommendations appear after the coordinator runs placement optimisation.',
     priority: 'High priority: reassigned from another shelter',
     gapTitle: 'Prepare before the family arrives',
+    inZone: 'This shelter is inside the hazard zone: shelters outside it are full. Make sure the building is safe; set its status to Closed (emergency) if not.',
     gapBody: (needs) => `This shelter does not have ${list(needs.map((n) => need[n].short))}. The family is still sent here because it is the nearest safe place.`,
     refer: 'Refer to a fitting shelter',
     referHint: 'The family only moves if a shelter meets all of their needs.',

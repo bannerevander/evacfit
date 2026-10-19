@@ -18,6 +18,8 @@ export interface MatchReason {
   km: number
   /** Needs this shelter cannot meet yet: a temporary, safety-first placement (prepare, or refer after arrival). */
   gaps?: NeedKey[]
+  /** Last resort: no shelter outside the hazard zone had room, so this one is inside it. */
+  inZone?: boolean
   /** Set when the OR-Tools solver chose this placement (otherwise the greedy matcher did). */
   engine?: 'cp-sat'
 }
