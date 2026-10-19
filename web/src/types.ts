@@ -16,6 +16,8 @@ export interface MatchReason {
   general?: 'keep_accessible' | 'no_better'
   people: number
   km: number
+  /** Set when the OR-Tools solver chose this placement (otherwise the greedy matcher did). */
+  engine?: 'cp-sat'
 }
 
 /** UNMT-2 deficit as data. */
@@ -28,7 +30,7 @@ export interface UnmetDetail {
 
 export type AlertMsg =
   | { k: 'activated'; title: string; n: number }
-  | { k: 'matched'; made: number; backlog: number }
+  | { k: 'matched'; made: number; backlog: number; engine?: 'cp-sat' | 'greedy' }
   | { k: 'closed' }
   | { k: 'checkin_unmet'; family: string; facility: FacilityType }
   | { k: 'reallocated'; family: string; shelter: string }

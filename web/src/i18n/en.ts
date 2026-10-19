@@ -91,7 +91,7 @@ export const en: Dict = {
       : r.general === 'no_better'
         ? 'no general shelter was a better fit'
         : 'families without special needs go to general shelters so accessible space stays free for those who need it'
-    return `Assigned to ${shelter} because ${because}, with room for the whole family (${r.people} people), ≈${fmtNum(r.km, 1)} km away (straight-line estimate).`
+    return `Assigned to ${shelter} because ${because}, with room for the whole family (${r.people} people), ≈${fmtNum(r.km, 1)} km away (straight-line estimate).${r.engine === 'cp-sat' ? ' Chosen by the OR-Tools global optimisation so that as many vulnerable families as possible get a place.' : ''}`
   },
   unmet: (d: UnmetDetail) => {
     const what = list(d.needs.map((n) => need[n].short)) + (d.watt ? ` (${fmtNum(d.watt)} W)` : '')
@@ -103,7 +103,7 @@ export const en: Dict = {
   alert: (m: AlertMsg) => {
     switch (m.k) {
       case 'activated': return `Evacuation activated: ${m.title}. ${m.n} families are inside the hazard zone.`
-      case 'matched': return `Optimisation complete: ${m.made} families recommended, ${m.backlog} added to the unmet-needs backlog.`
+      case 'matched': return `Optimisation complete${m.engine === 'cp-sat' ? ' (OR-Tools CP-SAT, global solution)' : m.engine === 'greedy' ? ' (fast matcher; solver unavailable)' : ''}: ${m.made} families recommended, ${m.backlog} added to the unmet-needs backlog.`
       case 'closed': return 'Evacuation operation closed.'
       case 'checkin_unmet': return `Unmet need reported at check-in for ${m.family}: ${facility[m.facility]}.`
       case 'reallocated': return `High priority: ${m.family} reassigned to ${m.shelter}, awaiting shelter confirmation.`

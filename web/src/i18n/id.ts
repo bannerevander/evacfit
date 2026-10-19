@@ -101,7 +101,7 @@ export const id = {
       : r.general === 'no_better'
         ? 'tidak ada posko umum yang lebih sesuai'
         : 'keluarga tanpa kebutuhan khusus diarahkan ke posko umum agar posko aksesibel tetap tersedia bagi yang membutuhkan'
-    return `Dialokasikan ke ${shelter} karena ${because}, dengan kapasitas cukup untuk seluruh keluarga (${r.people} orang), jarak ±${fmtNum(r.km, 1)} km (estimasi garis lurus).`
+    return `Dialokasikan ke ${shelter} karena ${because}, dengan kapasitas cukup untuk seluruh keluarga (${r.people} orang), jarak ±${fmtNum(r.km, 1)} km (estimasi garis lurus).${r.engine === 'cp-sat' ? ' Dipilih oleh optimasi global OR-Tools agar sebanyak mungkin keluarga rentan mendapat tempat.' : ''}`
   },
   unmet: (d: UnmetDetail) => {
     const what = list(d.needs.map((n) => need[n].short)) + (d.watt ? ` (${fmtNum(d.watt)} W)` : '')
@@ -113,7 +113,7 @@ export const id = {
   alert: (m: AlertMsg) => {
     switch (m.k) {
       case 'activated': return `Status evakuasi aktif: ${m.title}. ${m.n} keluarga berada di zona bahaya.`
-      case 'matched': return `Optimasi selesai: ${m.made} keluarga direkomendasikan, ${m.backlog} masuk backlog kebutuhan tak terpenuhi.`
+      case 'matched': return `Optimasi selesai${m.engine === 'cp-sat' ? ' (OR-Tools CP-SAT, solusi global)' : m.engine === 'greedy' ? ' (pencocokan cepat; solver tidak tersedia)' : ''}: ${m.made} keluarga direkomendasikan, ${m.backlog} masuk backlog kebutuhan tak terpenuhi.`
       case 'closed': return 'Operasi evakuasi ditutup.'
       case 'checkin_unmet': return `Kebutuhan tak terpenuhi dilaporkan saat check-in ${m.family}: ${facility[m.facility]}.`
       case 'reallocated': return `Prioritas tinggi: ${m.family} dialihkan ke ${m.shelter}, menunggu konfirmasi posko.`

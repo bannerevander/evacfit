@@ -147,9 +147,32 @@ function call(a: Action): [string, Row] {
 const errorCodes = ['no_event', 'not_found', 'bad_transition', 'not_confirmed', 'vehicle_mismatch', 'forbidden', 'outside_area'] as const
 type ErrorCode = Extract<AlertMsg, { k: 'error' }>['code']
 
+/**
+ * F3: ask the OR-Tools service for a global placement. Any failure (no URL, timeout, cold start, solver down) returns
+ * null and run_matching falls back to the greedy matcher, so the button always works.
+ */
+async function solverPreference(): Promise<Record<string, string> | null> {
+  const url = import.meta.env.VITE_SOLVER_URL
+  if (!url) return null
+  const { data: problem, error } = await supabase!.rpc('matching_problem')
+  if (error) return null // run_matching reports the real error (e.g. no_event)
+  try {
+    const res = await fetch(`${url}/solve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(problem),
+      signal: AbortSignal.timeout(10_000),
+    })
+    const r = (await res.json()) as { status: string; assignment: Record<string, string> }
+    return res.ok && (r.status === 'OPTIMAL' || r.status === 'FEASIBLE') ? r.assignment : null
+  } catch {
+    return null
+  }
+}
+
 /** Runs one action on the server; returns the alerts it produced. Throws with a client error code. */
 export async function send(a: Action): Promise<Pick<Alert, 'tone' | 'msg'>[]> {
-  const [fn, args] = call(a)
+  const [fn, args] = a.type === 'run_matching' ? ['run_matching', { p_prefer: await solverPreference() }] as const : call(a)
   const { data, error } = await supabase!.rpc(fn, args)
   if (error) {
     const code = errorCodes.find((c) => error.message === c) ?? 'server'
