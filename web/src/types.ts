@@ -16,13 +16,15 @@ export interface MatchReason {
   general?: 'keep_accessible' | 'no_better'
   people: number
   km: number
+  /** Needs this shelter cannot meet yet: a temporary, safety-first placement (prepare, or refer after arrival). */
+  gaps?: NeedKey[]
   /** Set when the OR-Tools solver chose this placement (otherwise the greedy matcher did). */
   engine?: 'cp-sat'
 }
 
 /** UNMT-2 deficit as data. */
 export interface UnmetDetail {
-  kind: 'none_has' | 'full'
+  kind: 'none_has' | 'full' | 'gaps'
   needs: NeedKey[]
   people: number
   watt: number
@@ -35,6 +37,7 @@ export type AlertMsg =
   | { k: 'checkin_unmet'; family: string; facility: FacilityType }
   | { k: 'reallocated'; family: string; shelter: string }
   | { k: 'no_alternative'; family: string }
+  | { k: 'no_referral'; family: string }
   | { k: 'synced'; n: number }
   | { k: 'error'; code: 'no_event' | 'not_found' | 'bad_transition' | 'not_confirmed' | 'vehicle_mismatch' | 'forbidden' | 'outside_area' | 'server' }
 

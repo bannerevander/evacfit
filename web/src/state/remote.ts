@@ -119,7 +119,7 @@ export async function areaAt(p: LatLng): Promise<{ id: string; name: string } | 
 /** Action types the server owns. Everything else (language, prefs, alerts, persona) stays in the browser. */
 export const remoteActions = new Set<Action['type']>([
   'activate_event', 'close_event', 'run_matching', 'confirm', 'reject', 'ready', 'dispatch', 'depart', 'check_in',
-  'save_family', 'save_shelter', 'create_shelter', 'switch_work', 'report_location', 'set_shelter_status', 'verify_shelter', 'resolve_unmet',
+  'save_family', 'save_shelter', 'create_shelter', 'switch_work', 'refer', 'report_location', 'set_shelter_status', 'verify_shelter', 'resolve_unmet',
 ])
 
 function call(a: Action): [string, Row] {
@@ -136,6 +136,7 @@ function call(a: Action): [string, Row] {
     case 'save_family': return ['save_family', { f: a.family }]
     case 'save_shelter': return ['save_shelter', { s: a.shelter }]
     case 'create_shelter': return ['create_shelter', { s: a.shelter }]
+    case 'refer': return ['refer_family', { p_id: a.id }]
     case 'switch_work': return ['switch_work', { p_shelter: a.shelterId ?? null, p_volunteer: a.volunteerId ?? null }]
     case 'report_location': return ['report_location', { p_family: a.familyId, p_lat: a.at?.lat ?? null, p_lng: a.at?.lng ?? null }]
     case 'set_shelter_status': return ['set_shelter_status', { p_id: a.id, p_status: a.status }]
@@ -173,6 +174,11 @@ async function solverPreference(): Promise<Record<string, string> | null> {
 
 /** Runs one action on the server; returns the alerts it produced. Throws with a client error code. */
 export async function send(a: Action): Promise<Pick<Alert, 'tone' | 'msg'>[]> {
+  if (a.type === 'activate_event' && a.match) {
+    // One step for the coordinator: activate, then place everyone (solver first, greedy fallback).
+    const activated = await send({ ...a, match: false })
+    return [...activated, ...(await send({ type: 'run_matching' }))]
+  }
   const [fn, args] = a.type === 'run_matching' ? ['run_matching', { p_prefer: await solverPreference() }] as const : call(a)
   const { data, error } = await supabase!.rpc(fn, args)
   if (error) {

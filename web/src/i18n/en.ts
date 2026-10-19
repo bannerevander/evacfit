@@ -84,6 +84,9 @@ export const en: Dict = {
   },
   reasonTitle: 'Why this match',
   reason: (r: MatchReason, shelter: string) => {
+    if (r.gaps?.length) {
+      return `Sent first to ${shelter}, the nearest safe shelter with room (≈${fmtNum(r.km, 1)} km, ${r.people} people): safety comes first. Not available here yet: ${list(r.gaps.map((n) => need[n].short))}. After arrival the family can be referred to a shelter that fits.`
+    }
     const met = r.needs.map((n) => (n === 'medicalPowerRequired' && r.powerAvailable !== undefined ? `verified ${need[n].short} (${fmtNum(r.powerAvailable)} W available)` : `verified ${need[n].short}`))
     if (r.language) met.push(`${serviceLang(r.language)} service`)
     const because = met.length
@@ -95,6 +98,7 @@ export const en: Dict = {
   },
   unmet: (d: UnmetDetail) => {
     const what = list(d.needs.map((n) => need[n].short)) + (d.watt ? ` (${fmtNum(d.watt)} W)` : '')
+    if (d.kind === 'gaps') return `Placed temporarily for safety; the shelter lacks ${what}. Refer to a fitting shelter once one has room.`
     if (d.kind === 'none_has') return `No verified shelter in the safe zone has ${what}. Needed for ${d.people} people.`
     return d.needs.length
       ? `${d.people} places with ${what} needed in the safe zone — qualifying shelters are full.`
@@ -108,6 +112,7 @@ export const en: Dict = {
       case 'checkin_unmet': return `Unmet need reported at check-in for ${m.family}: ${facility[m.facility]}.`
       case 'reallocated': return `High priority: ${m.family} reassigned to ${m.shelter}, awaiting shelter confirmation.`
       case 'no_alternative': return `No alternative shelter for ${m.family}. Added to the unmet-needs backlog.`
+      case 'no_referral': return `No shelter meets all of ${m.family}'s needs yet. The family stays safe where they are; try the referral again later.`
       case 'synced': return `${m.n} field changes synced to the server.`
       case 'error':
         return {
@@ -397,7 +402,7 @@ export const en: Dict = {
     centre: 'Event centre',
     radius: 'Hazard radius (km)',
     humanInLoop: 'Activation is your decision. The system only prepares the parameters.',
-    confirmActivate: 'Activate Evacuation',
+    confirmActivate: 'Activate & place families',
     endTitle: 'End operation',
     endBody: 'Lift the emergency once response is complete. Data is kept for the after-action review.',
     end: 'Close operation',
@@ -428,6 +433,7 @@ export const en: Dict = {
     col: { family: 'Family', missing: 'Missing facility', detail: 'Detail', severity: 'Severity', followUp: 'Follow-up' },
     backlogCaption: 'Unmet needs backlog',
     reportedBy: (s) => `reported by ${s}`,
+    placedAt: (s) => `placed temporarily at ${s}`,
     fromMatching: 'from optimisation',
     statusFor: (f) => `Follow-up status for ${f}`,
     csvHead: ['family', 'people', 'missing_facility', 'detail', 'severity', 'status', 'reported_at'],
@@ -453,6 +459,10 @@ export const en: Dict = {
     emptyConfirmed: (n) => `You have confirmed ${n} ${n === 1 ? 'family' : 'families'}.`,
     emptyBody: 'Recommendations appear after the coordinator runs placement optimisation.',
     priority: 'High priority: reassigned from another shelter',
+    gapTitle: 'Prepare before the family arrives',
+    gapBody: (needs) => `This shelter does not have ${list(needs.map((n) => need[n].short))}. The family is still sent here because it is the nearest safe place.`,
+    refer: 'Refer to a fitting shelter',
+    referHint: 'The family only moves if a shelter meets all of their needs.',
     lockUntil: (t) => `Place held until ${t}.`,
     confirm: 'Confirm Placement',
     reject: 'Reject',

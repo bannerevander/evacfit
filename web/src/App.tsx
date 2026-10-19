@@ -23,9 +23,9 @@ const coordinator: NavItem[] = [
   { to: '/koordinator/posko', label: (d) => d.nav.shelters, icon: ShieldCheck },
 ]
 
-// No count badges here: the demo lets one manager switch shelters, so a global count would mislead.
+// Counts are for the shelter on duty: unanswered recommendations expire after 15 minutes, so they must not be missed.
 const shelter: NavItem[] = [
-  { to: '/posko', label: (d) => d.nav.incoming, icon: ClipboardList, end: true },
+  { to: '/posko', label: (d) => d.nav.incoming, icon: ClipboardList, end: true, count: (s) => s.assignments.filter((a) => a.status === 'recommended' && a.shelterId === s.persona.shelter).length },
   { to: '/posko/kedatangan', label: (d) => d.nav.checkin, icon: LogIn },
   { to: '/posko/fasilitas', label: (d) => d.nav.facilities, icon: Building2 },
 ]
@@ -54,7 +54,7 @@ export default function App() {
             <Route path="backlog" element={<KoordinatorBacklog />} />
             <Route path="posko" element={<KoordinatorPosko />} />
           </Route>
-          <Route path="posko" element={<Gate role="shelter_manager"><StaffLayout items={shelter} role="shelter" context={<ShelterContext />} /></Gate>}>
+          <Route path="posko" element={<Gate role="shelter_manager"><StaffLayout items={shelter} role="shelter" context={<ShelterContext />} showAlerts /></Gate>}>
             <Route index element={<PoskoRekomendasi />} />
             <Route path="kedatangan" element={<PoskoKedatangan />} />
             <Route path="fasilitas" element={<PoskoFasilitas />} />

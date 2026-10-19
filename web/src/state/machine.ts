@@ -1,11 +1,11 @@
 import type { Assignment, AssignmentStatus, Family, VehicleType } from '../types'
 
-/** Closed-loop state machine (PRD §6.5 MTCH-6, AGENT.md §3.3). Terminal: arrived, rejected, reallocated. */
+/** Closed-loop state machine (PRD §6.5 MTCH-6, AGENT.md §3.3). Terminal: rejected, reallocated; arrived only moves on by referral. */
 const transitions: Record<AssignmentStatus, AssignmentStatus[]> = {
   recommended: ['confirmed', 'rejected', 'reallocated'],
   confirmed: ['in_transit', 'rejected', 'reallocated'],
   in_transit: ['arrived', 'reallocated'],
-  arrived: [],
+  arrived: ['reallocated'], // referral to a shelter that meets every need
   rejected: [],
   reallocated: [],
 }

@@ -67,6 +67,8 @@ export interface Placement {
 
 export interface UnmetDraft {
   familyId: string
+  /** Set for a temporary placement with gaps (safety first); unset = backlog, no place yet. */
+  shelterId?: string
   missingFacilityType: FacilityType
   detail: UnmetDetail
   severity: Severity
@@ -77,19 +79,22 @@ function severityOf(f: Family): Severity {
   return s >= 6 ? 'critical' : s >= 3 ? 'high' : s > 0 ? 'medium' : 'low'
 }
 
-function reasonFor(f: Family, s: Shelter, d: number, l: ShelterLoad): MatchReason {
-  const needs = needChecks.filter((c) => applies(f, c)).map((c) => c.need)
+function reasonFor(f: Family, s: Shelter, d: number, l: ShelterLoad, gaps: NeedKey[]): MatchReason {
+  const all = needChecks.filter((c) => applies(f, c)).map((c) => c.need)
+  const needs = all.filter((n) => !gaps.includes(n))
   const lang = f.needs.preferredLanguage !== 'Indonesia' && s.features.supportedLanguages.includes(f.needs.preferredLanguage) ? f.needs.preferredLanguage : undefined
   return {
     needs,
-    powerAvailable: f.needs.medicalPowerRequired ? l.powerRemaining : undefined,
+    gaps: gaps.length ? gaps : undefined,
+    powerAvailable: f.needs.medicalPowerRequired && !gaps.includes('medicalPowerRequired') ? l.powerRemaining : undefined,
     language: lang,
-    general: needs.length ? undefined : isAccessibleShelter(s) ? 'no_better' : 'keep_accessible',
+    general: all.length ? undefined : isAccessibleShelter(s) ? 'no_better' : 'keep_accessible',
     people: f.memberCount,
     km: d,
   }
 }
 
+/** Backlog only happens when no safe shelter has seats: name a need nobody has at all, else plain capacity. */
 function explainUnmet(f: Family, pool: Shelter[], loads: Map<string, ShelterLoad>): UnmetDraft {
   const checks = needChecks.filter((c) => applies(f, c))
   const base = { people: f.memberCount, watt: f.needs.medicalPowerRequired ? f.needs.minPowerWattage : 0 }
@@ -98,12 +103,7 @@ function explainUnmet(f: Family, pool: Shelter[], loads: Map<string, ShelterLoad
     const anyHas = pool.some((s) => c.ok(f, s, { ...loads.get(s.id)!, powerRemaining: s.features.backupGeneratorCapacityWatt }))
     if (!anyHas) return { familyId: f.id, missingFacilityType: c.type, severity, detail: { kind: 'none_has', needs: [c.need], ...base } }
   }
-  return {
-    familyId: f.id,
-    missingFacilityType: checks[0]?.type ?? 'general_capacity',
-    severity,
-    detail: { kind: 'full', needs: checks.map((c) => c.need), ...base },
-  }
+  return { familyId: f.id, missingFacilityType: 'general_capacity', severity, detail: { kind: 'full', needs: [], ...base } }
 }
 
 export interface MatchInput {
@@ -115,9 +115,15 @@ export interface MatchInput {
   familyIds: string[]
   /** Shelters a family must not be sent to again (previous rejections). */
   excluded?: Record<string, string[]>
+  /** Referral: only a shelter that meets every need; no temporary placement, no backlog record. */
+  strict?: boolean
 }
 
-export function matchFamilies({ families, shelters, assignments, event, familyIds, excluded = {} }: MatchInput) {
+/**
+ * Safety first, needs second (mirrors private.match): a shelter meeting every need if one has seats; otherwise the
+ * nearest safe shelter with seats, placed now with its gaps recorded; backlog only when no safe shelter has seats.
+ */
+export function matchFamilies({ families, shelters, assignments, event, familyIds, excluded = {}, strict = false }: MatchInput) {
   const byId = new Map(families.map((f) => [f.id, f]))
   const pool = shelters.filter((s) => shelterUsable(s, event))
   const loads = new Map(pool.map((s) => [s.id, shelterLoad(s, assignments, byId)]))
@@ -131,27 +137,38 @@ export function matchFamilies({ families, shelters, assignments, event, familyId
 
   for (const f of queue) {
     const special = needChecks.some((c) => applies(f, c))
-    let best: { s: Shelter; d: number; cost: number } | undefined
+    let best: { s: Shelter; d: number; cost: number; gaps: NeedKey[] } | undefined
+    let nearest: typeof best
     for (const s of pool) {
       if (excluded[f.id]?.includes(s.id)) continue
       const l = loads.get(s.id)!
       if (l.remaining < f.memberCount) continue
-      if (!needChecks.every((c) => !applies(f, c) || c.ok(f, s, l))) continue
+      const gaps = needChecks.filter((c) => applies(f, c) && !c.ok(f, s, l)).map((c) => c.need)
       const d = distanceKm(pickupOf(f), s)
+      if (gaps.length) {
+        if (!nearest || d < nearest.d || (d === nearest.d && gaps.length < nearest.gaps.length)) nearest = { s, d, cost: d, gaps }
+        continue
+      }
       const cost =
         d +
         (!special && isAccessibleShelter(s) ? 5 : 0) + // MTCH-3: keep accessible space free
         (s.features.supportedLanguages.includes(f.needs.preferredLanguage) ? 0 : 2) // MTCH-4 language preference
-      if (!best || cost < best.cost) best = { s, d, cost }
+      if (!best || cost < best.cost) best = { s, d, cost, gaps }
     }
+    if (!best && !strict) best = nearest
     if (!best) {
-      unmet.push(explainUnmet(f, pool, loads))
+      if (!strict) unmet.push(explainUnmet(f, pool, loads))
       continue
     }
     const l = loads.get(best.s.id)!
-    placements.push({ familyId: f.id, shelterId: best.s.id, distanceKm: best.d, reason: reasonFor(f, best.s, best.d, l) })
+    placements.push({ familyId: f.id, shelterId: best.s.id, distanceKm: best.d, reason: reasonFor(f, best.s, best.d, l, best.gaps) })
+    if (best.gaps.length) {
+      const first = needChecks.find((c) => c.need === best.gaps[0])!
+      const watt = best.gaps.includes('medicalPowerRequired') ? f.needs.minPowerWattage : 0
+      unmet.push({ familyId: f.id, shelterId: best.s.id, missingFacilityType: first.type, severity: severityOf(f), detail: { kind: 'gaps', needs: best.gaps, people: f.memberCount, watt } })
+    }
     l.remaining -= f.memberCount
-    if (f.needs.medicalPowerRequired) l.powerRemaining -= f.needs.minPowerWattage
+    if (f.needs.medicalPowerRequired) l.powerRemaining = Math.max(0, l.powerRemaining - f.needs.minPowerWattage)
   }
   return { placements, unmet }
 }

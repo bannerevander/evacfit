@@ -94,6 +94,9 @@ export const id = {
   },
   reasonTitle: 'Alasan pencocokan',
   reason: (r: MatchReason, shelter: string) => {
+    if (r.gaps?.length) {
+      return `Dikirim dulu ke ${shelter} sebagai posko aman terdekat yang masih punya tempat (±${fmtNum(r.km, 1)} km, ${r.people} orang): keselamatan lebih dulu. Belum tersedia di sini: ${list(r.gaps.map((n) => need[n].short))}. Setelah tiba, keluarga dapat dirujuk ke posko yang sesuai.`
+    }
     const met = r.needs.map((n) => (n === 'medicalPowerRequired' && r.powerAvailable !== undefined ? `${need[n].short} terverifikasi (daya tersedia ${fmtNum(r.powerAvailable)} W)` : `${need[n].short} terverifikasi`))
     if (r.language) met.push(`layanan ${serviceLang(r.language)}`)
     const because = met.length
@@ -105,6 +108,7 @@ export const id = {
   },
   unmet: (d: UnmetDetail) => {
     const what = list(d.needs.map((n) => need[n].short)) + (d.watt ? ` (${fmtNum(d.watt)} W)` : '')
+    if (d.kind === 'gaps') return `Ditempatkan sementara demi keselamatan; posko belum memiliki ${what}. Rujuk ke posko yang sesuai bila sudah ada tempat.`
     if (d.kind === 'none_has') return `Tidak ada posko terverifikasi di zona aman yang memiliki ${what}. Dibutuhkan untuk ${d.people} orang.`
     return d.needs.length
       ? `Dibutuhkan ${d.people} tempat dengan ${what} di zona aman — posko yang memenuhi sudah penuh.`
@@ -118,6 +122,7 @@ export const id = {
       case 'checkin_unmet': return `Kebutuhan tak terpenuhi dilaporkan saat check-in ${m.family}: ${facility[m.facility]}.`
       case 'reallocated': return `Prioritas tinggi: ${m.family} dialihkan ke ${m.shelter}, menunggu konfirmasi posko.`
       case 'no_alternative': return `Tidak ada posko alternatif untuk ${m.family}. Masuk backlog kebutuhan tak terpenuhi.`
+      case 'no_referral': return `Belum ada posko yang memenuhi semua kebutuhan ${m.family}. Keluarga tetap aman di posko sekarang; coba rujuk lagi nanti.`
       case 'synced': return `${m.n} perubahan lapangan berhasil disinkronkan ke server.`
       case 'error':
         return {
@@ -407,7 +412,7 @@ export const id = {
     centre: 'Pusat kejadian',
     radius: 'Radius zona bahaya (km)',
     humanInLoop: 'Keputusan aktivasi ada di tangan Anda. Sistem hanya menyiapkan parameter.',
-    confirmActivate: 'Aktifkan Status Evakuasi',
+    confirmActivate: 'Aktifkan & tempatkan keluarga',
     endTitle: 'Akhiri operasi',
     endBody: 'Cabut status darurat setelah penanganan selesai. Data tetap tersimpan untuk evaluasi.',
     end: 'Tutup operasi',
@@ -438,6 +443,7 @@ export const id = {
     col: { family: 'Keluarga', missing: 'Fasilitas kurang', detail: 'Keterangan', severity: 'Urgensi', followUp: 'Tindak lanjut' },
     backlogCaption: 'Daftar backlog kebutuhan tak terpenuhi',
     reportedBy: (s: string) => `dilaporkan ${s}`,
+    placedAt: (s: string) => `ditempatkan sementara di ${s}`,
     fromMatching: 'hasil optimasi',
     statusFor: (f: string) => `Status tindak lanjut ${f}`,
     csvHead: ['keluarga', 'jumlah_orang', 'fasilitas_kurang', 'keterangan', 'urgensi', 'status', 'dilaporkan'],
@@ -463,6 +469,10 @@ export const id = {
     emptyConfirmed: (n: number) => `${n} keluarga sudah Anda konfirmasi.`,
     emptyBody: 'Rekomendasi muncul setelah koordinator menjalankan optimasi penempatan.',
     priority: 'Prioritas tinggi: dialihkan dari posko lain',
+    gapTitle: 'Siapkan sebelum keluarga tiba',
+    gapBody: (needs: NeedKey[]) => `Posko ini belum memiliki ${list(needs.map((n) => need[n].short))}. Keluarga tetap dikirim ke sini karena paling dekat dan aman.`,
+    refer: 'Rujuk ke posko yang sesuai',
+    referHint: 'Keluarga hanya dipindah bila ada posko yang memenuhi semua kebutuhannya.',
     lockUntil: (t: string) => `Kuota dikunci sementara sampai pukul ${t}.`,
     confirm: 'Konfirmasi Penerimaan',
     reject: 'Tolak',

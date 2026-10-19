@@ -36,7 +36,9 @@ export interface State {
 }
 
 export type Action =
-  | { type: 'activate_event'; event: DisasterEvent }
+  /** match: place families right after activating (one step for the coordinator). */
+  | { type: 'activate_event'; event: DisasterEvent; match?: boolean }
+  | { type: 'refer'; id: string }
   | { type: 'close_event'; id: string }
   | { type: 'run_matching' }
   | { type: 'confirm'; id: string }
@@ -137,7 +139,7 @@ function move(s: State, id: string, to: AssignmentStatus, patch: Partial<Assignm
 }
 
 /** Runs the matcher for the given families and writes recommendations / unmet backlog (MTCH-5..7, RULE 6). */
-function match(s: State, familyIds: string[], reallocatedFrom: Record<string, string> = {}): State {
+function match(s: State, familyIds: string[], reallocatedFrom: Record<string, string> = {}, strict = false): State {
   const event = activeEvent(s)
   if (!event || familyIds.length === 0) return s
   const excluded: Record<string, string[]> = {}
@@ -145,7 +147,7 @@ function match(s: State, familyIds: string[], reallocatedFrom: Record<string, st
     if (a.status === 'rejected' || a.status === 'reallocated') (excluded[a.familyId] ??= []).push(a.shelterId)
   }
   const { placements, unmet } = matchFamilies({
-    families: s.families, shelters: s.shelters, assignments: s.assignments, event, familyIds, excluded,
+    families: s.families, shelters: s.shelters, assignments: s.assignments, event, familyIds, excluded, strict,
   })
   const t = now()
   const lock = new Date(Date.now() + SOFT_LOCK_MINUTES * 60_000).toISOString()
@@ -154,12 +156,14 @@ function match(s: State, familyIds: string[], reallocatedFrom: Record<string, st
     createdAt: t, softLockExpiresAt: lock, reallocatedFromId: reallocatedFrom[p.familyId],
   }))
   const placed = new Set(placements.map((p) => p.familyId))
-  const unmetIds = new Set(unmet.map((u) => u.familyId))
+  const unmetIds = new Set(unmet.filter((u) => !u.shelterId).map((u) => u.familyId)) // gap records belong to placed families
+  const redo = new Set(familyIds)
   let next: State = {
     ...s,
     assignments: [...s.assignments, ...created],
     unmet: [
-      ...s.unmet.map((u) => (u.resolutionStatus !== 'resolved' && !u.shelterId && (placed.has(u.familyId) || unmetIds.has(u.familyId))
+      // Re-matching replaces earlier matcher records (backlog and temporary-placement gaps); check-in reports stay.
+      ...s.unmet.map((u) => (u.resolutionStatus !== 'resolved' && redo.has(u.familyId) && (!u.shelterId || u.detail?.kind === 'gaps')
         ? { ...u, resolutionStatus: 'resolved' as const } : u)),
       ...unmet.map((u) => ({ ...u, id: uid(), resolutionStatus: 'open' as const, reportedAt: t })),
     ],
@@ -178,7 +182,8 @@ function reduce(s: State, a: Action): State {
       )
       const next = { ...s, events }
       const inZone = familiesToMatch(next.families, { ...a.event, status: 'active' })
-      return alert(setFamilyStatus(next, inZone, 'waiting_match'), 'critical', { k: 'activated', title: a.event.title, n: inZone.length })
+      const activated = alert(setFamilyStatus(next, inZone, 'waiting_match'), 'critical', { k: 'activated', title: a.event.title, n: inZone.length })
+      return a.match ? reduce(activated, { type: 'run_matching' }) : activated
     }
     case 'close_event':
       return alert({ ...s, events: s.events.map((e) => (e.id === a.id ? { ...e, status: 'closed' } : e)) }, 'info', { k: 'closed' })
@@ -210,6 +215,18 @@ function reduce(s: State, a: Action): State {
     case 'expire_locks': {
       const expired = expiredLocks(s.assignments, now())
       return expired.length ? reallocate(s, expired) : s
+    }
+    case 'refer': {
+      // After arrival: move on only to a shelter that meets every need; otherwise the family stays where it is safe.
+      const as = s.assignments.find((x) => x.id === a.id)
+      if (!as) throw new StoreError('not_found')
+      let next = move(s, a.id, 'reallocated')
+      next = setFamilyStatus(next, [as.familyId], 'waiting_match')
+      next = match(next, [as.familyId], { [as.familyId]: a.id }, true)
+      const family = s.families.find((f) => f.id === as.familyId)!.familyName
+      if (currentAssignment(next, as.familyId)?.status !== 'recommended') return alert(s, 'warning', { k: 'no_referral', family })
+      next = { ...next, unmet: next.unmet.map((u) => (u.familyId === as.familyId && u.shelterId === as.shelterId && u.resolutionStatus !== 'resolved' ? { ...u, resolutionStatus: 'resolved' } : u)) }
+      return reallocationAlert(next, as.familyId)
     }
     case 'ready':
       return { ...s, assignments: s.assignments.map((x) => (x.id === a.id ? { ...x, readyForPickupAt: now() } : x)) }

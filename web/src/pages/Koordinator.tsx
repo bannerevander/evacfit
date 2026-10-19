@@ -50,6 +50,7 @@ function ActivateDialog({ open, onClose, draft }: { open: boolean; onClose: () =
           e.preventDefault()
           dispatch({
             type: 'activate_event',
+            match: true,
             event: { id: draft?.id ?? crypto.randomUUID(), source: draft?.source ?? 'manual', type, title, lat, lng, radiusKm: radius, magnitude: draft?.magnitude, depthKm: draft?.depthKm, status: 'active', time: draft?.time ?? new Date().toISOString() },
           })
           onClose()
@@ -140,7 +141,8 @@ export function KoordinatorKomando() {
   const [closing, setClosing] = useState(false)
   const inZone = event ? state.families.filter((f) => distanceKm(f, event) <= event.radiusKm) : []
   const count = (st: string) => inZone.filter((f) => f.status === st).length
-  const backlog = state.unmet.filter((u) => u.resolutionStatus !== 'resolved').length
+  // Families with no place at all; temporary placements with gaps are follow-ups on the Backlog page, not here.
+  const backlog = state.unmet.filter((u) => u.resolutionStatus !== 'resolved' && !u.shelterId).length
   const byId = new Map(state.families.map((f) => [f.id, f]))
   const kpis: { icon: LucideIcon; tone: Tone; label: string; value: number; danger?: boolean }[] = [
     { icon: Hourglass, tone: 'orange', label: k.kpi.waiting, value: count('waiting_match') },
@@ -391,7 +393,7 @@ export function KoordinatorBacklog() {
                   const sh = u.shelterId && state.shelters.find((s) => s.id === u.shelterId)
                   return (
                     <tr key={u.id} className="border-t border-border align-top">
-                      <th scope="row" className="p-sm font-semibold">{f?.familyName}<span className="block text-body-sm font-normal text-text-secondary">{d.common.people(f?.memberCount ?? 0)} · {sh ? k.reportedBy(sh.name) : k.fromMatching}</span></th>
+                      <th scope="row" className="p-sm font-semibold">{f?.familyName}<span className="block text-body-sm font-normal text-text-secondary">{d.common.people(f?.memberCount ?? 0)} · {sh ? (u.detail?.kind === 'gaps' ? k.placedAt(sh.name) : k.reportedBy(sh.name)) : k.fromMatching}</span></th>
                       <td className="p-sm">{d.facility[u.missingFacilityType]}</td>
                       <td className="p-sm">{unmetText(u, d)}</td>
                       <td className="p-sm"><SeverityBadge s={u.severity} /></td>
