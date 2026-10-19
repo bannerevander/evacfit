@@ -1,7 +1,7 @@
 // Supabase backend (VITE_DATA_MODE=supabase). Reads go through RLS; every domain write is one Postgres RPC
 // (supabase/migrations/*_rpc.sql), which also owns matching, capacity locks and soft-lock expiry.
 import { createClient } from '@supabase/supabase-js'
-import type { AlertMsg, Assignment, DisasterEvent, Family, LatLng, Role, Shelter, UnmetNeed, Volunteer } from '../types'
+import type { AlertMsg, Assignment, DisasterEvent, Family, LatLng, OutboxItem, Role, Shelter, UnmetNeed, Volunteer } from '../types'
 import type { Action, Alert, State } from './store'
 
 export const dataMode: 'demo' | 'supabase' = import.meta.env.VITE_DATA_MODE === 'supabase' ? 'supabase' : 'demo'
@@ -64,12 +64,31 @@ export async function fetchAll(): Promise<Remote> {
   }
 }
 
+const PROFILE_KEY = 'evacfit-profile'
+
+/** Signed-in profile. Offline (OFFL-1) the last profile of the same account is reused so field staff are not locked out. */
 export async function fetchProfile(): Promise<Profile | null> {
-  const { data } = await supabase!.auth.getUser()
-  if (!data.user) return null
+  const { data } = await supabase!.auth.getSession() // local: works without signal
+  const uid = data.session?.user.id
+  if (!uid) {
+    localStorage.removeItem(PROFILE_KEY)
+    return null
+  }
+  try {
+    const p = await loadProfile(uid)
+    localStorage.setItem(PROFILE_KEY, JSON.stringify({ uid, p }))
+    return p
+  } catch (e) {
+    const cached = JSON.parse(localStorage.getItem(PROFILE_KEY) ?? 'null') as { uid: string; p: Profile } | null
+    if (cached?.uid === uid) return cached.p
+    throw e
+  }
+}
+
+async function loadProfile(uid: string): Promise<Profile | null> {
   const row = must(await supabase!.from('profiles')
     .select('role, display_name, shelter_id, volunteer_id, area:operation_areas(id, name, center_lat, center_lng, country:countries(code, emergency_number, service_languages))')
-    .eq('id', data.user.id).maybeSingle()) as unknown as ProfileRow | null
+    .eq('id', uid).maybeSingle()) as unknown as ProfileRow | null
   if (!row) return null
   const a = row.area
   return {
@@ -138,6 +157,20 @@ export async function send(a: Action): Promise<Pick<Alert, 'tone' | 'msg'>[]> {
   }
   return (data ?? []) as Pick<Alert, 'tone' | 'msg'>[]
 }
+
+/** Replays one queued field action exactly once (server dedupes on the request id, see run_once). */
+export async function sendOnce(item: OutboxItem): Promise<Pick<Alert, 'tone' | 'msg'>[]> {
+  const [fn, args] = call(item.action as Action)
+  const { data, error } = await supabase!.rpc('run_once', { p_request: item.id, p_fn: fn, p_args: args })
+  if (error) {
+    if (!navigator.onLine || /fetch|network|load failed/i.test(error.message)) throw new OfflineError()
+    throw new RemoteError(errorCodes.find((c) => error.message === c) ?? 'server')
+  }
+  return (data ?? []) as Pick<Alert, 'tone' | 'msg'>[]
+}
+
+/** No signal: keep the item queued and try again later. */
+export class OfflineError extends Error {}
 
 export class RemoteError extends Error {
   constructor(public code: ErrorCode) {

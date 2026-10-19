@@ -1,0 +1,15 @@
+{
+  "name": "EvacFit — Evakuasi Inklusif",
+  "short_name": "EvacFit",
+  "description": "Koordinasi penempatan dan evakuasi berbasis kebutuhan fungsional.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#1D4ED8",
+  "lang": "id",
+  "icons": [
+    { "src": "/brand/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}

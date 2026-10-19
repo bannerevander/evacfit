@@ -9,7 +9,8 @@ import type {
   AlertMsg, Assignment, AssignmentStatus, DisasterEvent, Family, FacilityType, Lang, LatLng, OutboxItem, RejectionCode, Severity, Shelter, ShelterOperationalStatus, UnmetNeed, Volunteer,
 } from '../types'
 import { canTransition, expiredLocks, SOFT_LOCK_MINUTES, vehicleFits } from './machine'
-import { dataMode, fetchAll, fetchProfile, RemoteError, remoteActions, send, supabase, type Profile, type Remote } from './remote'
+import { outboxAll, outboxDelete, outboxPut } from './outbox'
+import { dataMode, fetchAll, fetchProfile, OfflineError, RemoteError, remoteActions, send, sendOnce, supabase, type Profile, type Remote } from './remote'
 
 export interface Alert {
   id: string
@@ -60,6 +61,9 @@ export type Action =
   | { type: 'reset' }
   | { type: 'hydrate'; data: Remote; alerts: Pick<Alert, 'tone' | 'msg'>[] }
   | { type: 'remote_error'; code: RemoteError['code'] }
+  | { type: 'enqueue'; item: OutboxItem }
+  | { type: 'dequeue'; id: string }
+  | { type: 'outbox_loaded'; items: OutboxItem[] }
 
 // v2: generated texts became structured data (i18n); older saved demos are ignored.
 const STORAGE_KEY = dataMode === 'supabase' ? 'evacfit-supabase-v1' : 'evacfit-demo-v2'
@@ -250,7 +254,8 @@ function reduce(s: State, a: Action): State {
     case 'resolve_unmet':
       return { ...s, unmet: s.unmet.map((u) => (u.id === a.id ? { ...u, resolutionStatus: a.status } : u)) }
     case 'set_offline':
-      if (!a.offline && s.outbox.length) return alert({ ...s, offline: false, outbox: [] }, 'info', { k: 'synced', n: s.outbox.length })
+      // Demo only: the simulated outbox "syncs" instantly. Supabase mode replays through flush() instead.
+      if (dataMode === 'demo' && !a.offline && s.outbox.length) return alert({ ...s, offline: false, outbox: [] }, 'info', { k: 'synced', n: s.outbox.length })
       return { ...s, offline: a.offline }
     case 'set_pref':
       return { ...s, prefs: { ...s.prefs, [a.key]: a.value } }
@@ -263,7 +268,14 @@ function reduce(s: State, a: Action): State {
     case 'reset':
       return { ...initialState(), lang: s.lang, prefs: s.prefs }
     case 'hydrate':
-      return a.alerts.reduce((next, x) => alert(next, x.tone, x.msg), { ...s, ...a.data })
+      // Items still waiting in the outbox stay applied on top of the server snapshot until they sync.
+      return a.alerts.reduce((next, x) => alert(next, x.tone, x.msg), s.outbox.reduce(applyQueued, { ...s, ...a.data }))
+    case 'enqueue':
+      return { ...reduce(s, a.item.action as Action), outbox: [...s.outbox, a.item] }
+    case 'dequeue':
+      return { ...s, outbox: s.outbox.filter((o) => o.id !== a.id) }
+    case 'outbox_loaded':
+      return { ...s, outbox: a.items }
     case 'remote_error':
       return alert(s, 'critical', { k: 'error', code: a.code })
   }
@@ -293,10 +305,18 @@ function reallocationAlert(s: State, familyId: string): State {
 /** Field actions taken offline are queued in the outbox (OFFL-3) and flushed when back online (OFFL-4). */
 const queued = new Set<Action['type']>(['save_family', 'depart', 'check_in', 'ready'])
 
+function applyQueued(s: State, o: OutboxItem): State {
+  try {
+    return reduce(s, o.action as Action)
+  } catch {
+    return s // already reflected in the server snapshot (e.g. depart that the server applied)
+  }
+}
+
 function reducer(s: State, a: Action): State {
   try {
     const next = reduce(s, a)
-    if (s.offline && queued.has(a.type)) return { ...next, outbox: [...next.outbox, { id: uid(), kind: a.type as OutboxItem['kind'], at: now(), action: a }] }
+    if (dataMode === 'demo' && s.offline && queued.has(a.type)) return { ...next, outbox: [...next.outbox, { id: uid(), kind: a.type as OutboxItem['kind'], at: now(), action: a }] }
     return next
   } catch (e) {
     if (e instanceof StoreError) return alert(s, 'critical', { k: 'error', code: e.code })
@@ -333,18 +353,57 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     await refresh(alerts).catch(() => local({ type: 'remote_error', code: 'server' }))
   }, [refresh])
 
+  /** OFFL-4: send queued field actions oldest first; stop at the first network failure and retry later. */
+  const flushing = useRef(false)
+  const flush = useCallback(async () => {
+    if (flushing.current) return
+    flushing.current = true
+    const alerts: Pick<Alert, 'tone' | 'msg'>[] = []
+    let synced = 0
+    let late = false
+    try {
+      for (const item of await outboxAll()) {
+        try {
+          alerts.push(...(await sendOnce(item)))
+          synced++
+          late ||= Date.now() - Date.parse(item.at) > 10_000
+        } catch (e) {
+          if (e instanceof OfflineError) {
+            local({ type: 'set_offline', offline: true })
+            break
+          }
+          local({ type: 'remote_error', code: e instanceof RemoteError ? e.code : 'server' }) // will never succeed: drop it
+        }
+        await outboxDelete(item.id)
+        local({ type: 'dequeue', id: item.id })
+      }
+      if (synced) {
+        local({ type: 'set_offline', offline: false })
+        if (late) alerts.push({ tone: 'info', msg: { k: 'synced', n: synced } })
+        await refresh(alerts).catch(() => {})
+      }
+    } finally {
+      flushing.current = false
+    }
+  }, [refresh])
+
   const dispatch = useCallback((a: Action) => {
     if (dataMode === 'demo') return local(a)
-    const s = stateRef.current
-    if (a.type === 'set_offline' && !a.offline && s.outbox.length) {
-      // OFFL-4: replay what was queued, then clear the outbox (reducer) and show the synced notice.
-      const queuedActions = s.outbox.map((o) => o.action as Action).filter(Boolean)
-      void run(queuedActions).then(() => local(a))
+    if (queued.has(a.type)) {
+      // Field actions always go through the outbox: applied on screen now, stored on the device, sent exactly once.
+      try {
+        reduce(stateRef.current, a) // invalid here (e.g. bad transition)? show the error instead of queueing
+      } catch {
+        return local(a)
+      }
+      const item: OutboxItem = { id: uid(), kind: a.type as OutboxItem['kind'], at: now(), action: a }
+      local({ type: 'enqueue', item })
+      void outboxPut(item).then(flush)
       return
     }
-    if (!remoteActions.has(a.type) || (s.offline && queued.has(a.type))) return local(a) // offline: optimistic + outbox
+    if (!remoteActions.has(a.type)) return local(a)
     void run([a])
-  }, [run])
+  }, [run, flush])
 
   useEffect(() => {
     try {
@@ -357,7 +416,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (dataMode === 'supabase') {
       // Soft-locks expire in pg_cron; the browser only re-reads the server so other roles' changes show up.
-      const t = window.setInterval(() => void refresh().catch(() => {}), 15_000)
+      void outboxAll().then((items) => {
+        local({ type: 'outbox_loaded', items })
+        return flush()
+      })
+      const t = window.setInterval(() => void flush().then(() => refresh()).catch(() => {}), 15_000)
       const { data } = supabase!.auth.onAuthStateChange((event) => {
         if (event === 'SIGNED_OUT') {
           // Shared devices: nothing from the previous account stays on screen or in storage.
@@ -370,7 +433,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           void fetchProfile().then(async (p) => {
             if (p?.shelterId) local({ type: 'set_persona', key: 'shelter', value: p.shelterId })
             if (p?.volunteerId) local({ type: 'set_persona', key: 'volunteer', value: p.volunteerId })
-            await refresh()
+            await refresh().catch(() => {}) // offline: keep the last snapshot from this device
             setProfile(p) // after the data, so role pages never render empty
           }).catch(() => setProfile(null))
         })
@@ -384,10 +447,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     local({ type: 'expire_locks' })
     const t = window.setInterval(() => local({ type: 'expire_locks' }), 30_000)
     return () => window.clearInterval(t)
-  }, [refresh])
+  }, [refresh, flush])
 
   useEffect(() => {
-    const on = () => dispatch({ type: 'set_offline', offline: false })
+    const on = () => {
+      dispatch({ type: 'set_offline', offline: false })
+      if (dataMode === 'supabase') void flush()
+    }
     const off = () => dispatch({ type: 'set_offline', offline: true })
     window.addEventListener('online', on)
     window.addEventListener('offline', off)
