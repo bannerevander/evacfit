@@ -1,4 +1,5 @@
-// Work context shown in the staff top bar. Demo mode: free pickers + signal simulation. Supabase mode: fixed by the signed-in account.
+// Work context shown in the staff top bar: which shelter I staff / which crew I am. Demo mode switches locally;
+// supabase mode saves it to the account (switch_work) so permissions follow. The signal simulator is demo-only.
 import { CloudOff, Wifi } from 'lucide-react'
 import { useId } from 'react'
 import { useT } from '../i18n'
@@ -7,21 +8,17 @@ import { useStore } from '../state/store'
 import { usePersona } from './domain'
 
 const selectCls = 'min-h-12 min-w-0 max-w-full rounded-md border border-text-muted bg-background px-sm text-body-md font-semibold text-text-primary'
-const fixedCls = 'min-w-0 truncate text-body-md font-semibold text-text-primary'
 
 export function ShelterContext() {
   const d = useT()
-  const { state } = useStore()
+  const { state, dispatch } = useStore()
   const [id, setId] = usePersona('shelter')
   const fid = useId()
-  const label = <label htmlFor={fid} className="shrink-0 text-body-sm text-text-secondary">{d.layout.workAt}</label>
-  if (dataMode === 'supabase') {
-    return <p className="flex min-w-0 items-center gap-sm"><span className="shrink-0 text-body-sm text-text-secondary">{d.layout.workAt}</span><span className={fixedCls}>{state.shelters.find((s) => s.id === id)?.name}</span></p>
-  }
+  const pick = (v: string) => (dataMode === 'supabase' ? dispatch({ type: 'switch_work', shelterId: v }) : setId(v))
   return (
     <div className="flex min-w-0 items-center gap-sm">
-      {label}
-      <select id={fid} value={id} onChange={(e) => setId(e.target.value)} className={`${selectCls} flex-1 lg:w-[360px] lg:flex-none`}>
+      <label htmlFor={fid} className="shrink-0 text-body-sm text-text-secondary">{d.layout.workAt}</label>
+      <select id={fid} value={id} onChange={(e) => pick(e.target.value)} className={`${selectCls} flex-1 lg:w-[360px] lg:flex-none`}>
         {state.shelters.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
       </select>
     </div>
@@ -35,17 +32,14 @@ export function VolunteerContext() {
   const fid = useId()
   const v = state.volunteers.find((x) => x.id === id) ?? state.volunteers[0]
   if (!v) return null
-  const label = <label htmlFor={fid} className="shrink-0 text-body-sm text-text-secondary">{d.layout.me}</label>
-  if (dataMode === 'supabase') {
-    return <p className="flex min-w-0 items-center gap-sm"><span className="shrink-0 text-body-sm text-text-secondary">{d.layout.me}</span><span className={fixedCls}>{v.name} — {d.vehicle[v.vehicleType]}</span></p>
-  }
+  const pick = (x: string) => (dataMode === 'supabase' ? dispatch({ type: 'switch_work', volunteerId: x }) : setId(x))
   return (
     <div className="flex min-w-0 flex-wrap items-center gap-sm">
-      {label}
-      <select id={fid} value={v.id} onChange={(e) => setId(e.target.value)} className={`${selectCls} min-w-[200px] flex-1 lg:w-[300px] lg:flex-none`}>
+      <label htmlFor={fid} className="shrink-0 text-body-sm text-text-secondary">{d.layout.me}</label>
+      <select id={fid} value={v.id} onChange={(e) => pick(e.target.value)} className={`${selectCls} min-w-[200px] flex-1 lg:w-[300px] lg:flex-none`}>
         {state.volunteers.map((x) => <option key={x.id} value={x.id}>{x.name} — {d.vehicle[x.vehicleType]}</option>)}
       </select>
-      <button
+      {dataMode === 'demo' && <button
         type="button"
         aria-pressed={state.offline}
         onClick={() => dispatch({ type: 'set_offline', offline: !state.offline })}
@@ -53,7 +47,7 @@ export function VolunteerContext() {
       >
         {state.offline ? <Wifi aria-hidden className="h-5 w-5" /> : <CloudOff aria-hidden className="h-5 w-5" />}
         {state.offline ? d.layout.restoreSignal : d.layout.simulateOffline}
-      </button>
+      </button>}
     </div>
   )
 }

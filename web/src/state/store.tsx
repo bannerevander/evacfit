@@ -48,6 +48,7 @@ export type Action =
   | { type: 'save_family'; family: Family }
   | { type: 'save_shelter'; shelter: Shelter }
   | { type: 'create_shelter'; shelter: Shelter }
+  | { type: 'switch_work'; shelterId?: string; volunteerId?: string }
   | { type: 'report_location'; familyId: string; at: LatLng | null }
   | { type: 'set_shelter_status'; id: string; status: ShelterOperationalStatus }
   | { type: 'expire_locks' }
@@ -259,6 +260,8 @@ function reduce(s: State, a: Action): State {
       return { ...s, offline: a.offline }
     case 'set_pref':
       return { ...s, prefs: { ...s.prefs, [a.key]: a.value } }
+    case 'switch_work':
+      return { ...s, persona: { ...s.persona, ...(a.shelterId && { shelter: a.shelterId }), ...(a.volunteerId && { volunteer: a.volunteerId }) } }
     case 'set_persona':
       return { ...s, persona: { ...s.persona, [a.key]: a.value } }
     case 'set_lang':
@@ -402,6 +405,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return
     }
     if (!remoteActions.has(a.type)) return local(a)
+    if (a.type === 'switch_work') local(a) // show the new shelter/crew at once; run() then reloads what RLS now allows
     void run([a])
   }, [run, flush])
 
