@@ -116,6 +116,16 @@ export async function areaAt(p: LatLng): Promise<{ id: string; name: string } | 
   return data
 }
 
+export type RouteProfile = 'wheelchair' | 'driving-car'
+export interface Route { km: number; minutes: number; coords: [number, number][]; steps: { text: string; m: number }[] }
+
+/** NAV-1/NAV-4: road route via the `route` Edge Function (ORS key stays server-side). null = no route for this profile. */
+export async function fetchRoute(from: LatLng, to: LatLng, profile: RouteProfile, lang: 'id' | 'en'): Promise<Route | null> {
+  const { data, error } = await supabase!.functions.invoke('route', { body: { from, to, profile, lang } })
+  if (error) throw new Error(error.message)
+  return (data as { route?: Route }).route ?? null
+}
+
 /** Areas a staff account can switch to (those with shelters). Supabase mode only. */
 export async function workAreas(): Promise<{ id: string; name: string }[]> {
   const { data, error } = await supabase!.rpc('work_areas')

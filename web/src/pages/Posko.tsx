@@ -73,7 +73,7 @@ function GapNotice({ reason }: { reason: Assignment['reason'] }) {
 function RejectDialog({ assignment, onClose }: { assignment: Assignment | null; onClose: () => void }) {
   const d = useT()
   const { dispatch } = useStore()
-  const [code, setCode] = useState<RejectionCode>('facility_power_down')
+  const [code, setCode] = useState<RejectionCode | null>(null)
   const [note, setNote] = useState('')
   const name = useId()
   return (
@@ -81,7 +81,7 @@ function RejectDialog({ assignment, onClose }: { assignment: Assignment | null; 
       <form
         onSubmit={(e) => {
           e.preventDefault()
-          if (!assignment) return
+          if (!assignment || !code) return
           dispatch({ type: 'reject', id: assignment.id, code, note })
           setNote('')
           onClose()
@@ -93,7 +93,7 @@ function RejectDialog({ assignment, onClose }: { assignment: Assignment | null; 
           <div className="flex flex-col gap-sm">
             {(Object.keys(d.rejection) as RejectionCode[]).map((c) => (
               <label key={c} className="flex min-h-12 cursor-pointer items-center gap-sm rounded-md border border-text-muted px-md">
-                <input type="radio" name={name} className="h-6 w-6 accent-primary" checked={code === c} onChange={() => setCode(c)} />
+                <input type="radio" name={name} required className="h-6 w-6 accent-primary" checked={code === c} onChange={() => setCode(c)} />
                 <span className="text-body-md">{d.rejection[c]}</span>
               </label>
             ))}
@@ -102,7 +102,7 @@ function RejectDialog({ assignment, onClose }: { assignment: Assignment | null; 
         <TextArea label={d.posko.note} required={code === 'other'} helper={code === 'other' ? d.posko.noteRequired : d.posko.optional} value={note} onChange={(e) => setNote(e.target.value)} />
         <p className="text-body-sm text-text-secondary">{d.posko.rejectInfo}</p>
         <div className="flex flex-col gap-sm sm:flex-row-reverse">
-          <Button type="submit" variant="emergency" icon={X}>{d.posko.rejectConfirm}</Button>
+          <Button type="submit" variant="emergency" icon={X} disabled={!code}>{d.posko.rejectConfirm}</Button>
           <Button variant="secondary" onClick={onClose}>{d.common.cancel}</Button>
         </div>
       </form>
@@ -159,7 +159,8 @@ export function PoskoRekomendasi() {
           })}
         </ul>
       )}
-      <RejectDialog assignment={rejecting} onClose={() => setRejecting(null)} />
+      {/* key remounts the dialog so a reason never carries over to the next family */}
+      <RejectDialog key={rejecting?.id} assignment={rejecting} onClose={() => setRejecting(null)} />
     </>
   )
 }
@@ -332,8 +333,8 @@ export function ShelterForm({ shelter, onSave }: { shelter: Shelter; onSave: (s:
         <TextArea label={p.address} required value={s.address} onChange={(e) => setS({ ...s, address: e.target.value })} />
         <TextInput label={p.contact} type="tel" value={s.contact} onChange={(e) => setS({ ...s, contact: e.target.value })} />
         <div className="grid gap-md sm:grid-cols-2">
-          <TextInput label={p.capacity} type="number" min={0} required value={s.totalCapacity} onChange={(e) => setS({ ...s, totalCapacity: Math.max(0, Number(e.target.value)) })} />
-          <TextInput label={p.local} helper={p.localHint} type="number" min={0} value={s.currentOccupancy} onChange={(e) => setS({ ...s, currentOccupancy: Math.max(0, Number(e.target.value)) })} />
+          <TextInput label={p.capacity} type="number" min={0} required value={s.totalCapacity} onChange={(e) => setS({ ...s, totalCapacity: Number(e.target.value) })} />
+          <TextInput label={p.local} helper={p.localHint} type="number" min={0} value={s.currentOccupancy} onChange={(e) => setS({ ...s, currentOccupancy: Number(e.target.value) })} />
         </div>
       </Panel>
       <Panel title={p.location} icon={MapPin} className="lg:col-span-2" bodyClass="flex flex-col gap-md">
@@ -345,9 +346,9 @@ export function ShelterForm({ shelter, onSave }: { shelter: Shelter; onSave: (s:
         <CheckRow label={p.f.slope} checked={f.rampSlopeCompliant} onChange={(v) => setF('rampSlopeCompliant', v)} />
         <CheckRow label={p.f.door} checked={f.doorWidthAccessible} onChange={(v) => setF('doorWidthAccessible', v)} />
         <CheckRow label={p.f.toilet} checked={f.hasAccessibleToilet} onChange={(v) => setF('hasAccessibleToilet', v)} />
-        {f.hasAccessibleToilet && <TextInput label={p.f.toiletCount} type="number" min={0} value={f.accessibleToiletCount} onChange={(e) => setF('accessibleToiletCount', Math.max(0, Number(e.target.value)))} />}
+        {f.hasAccessibleToilet && <TextInput label={p.f.toiletCount} type="number" min={0} value={f.accessibleToiletCount} onChange={(e) => setF('accessibleToiletCount', Number(e.target.value))} />}
         <CheckRow label={p.f.power} checked={f.hasMedicalPower} onChange={(v) => setF('hasMedicalPower', v)} />
-        {f.hasMedicalPower && <TextInput label={p.f.powerW} type="number" min={0} step={100} value={f.backupGeneratorCapacityWatt} onChange={(e) => setF('backupGeneratorCapacityWatt', Math.max(0, Number(e.target.value)))} />}
+        {f.hasMedicalPower && <TextInput label={p.f.powerW} type="number" min={0} step={100} value={f.backupGeneratorCapacityWatt} onChange={(e) => setF('backupGeneratorCapacityWatt', Number(e.target.value))} />}
         <CheckRow label={p.f.caregiver} checked={f.hasCaregiverRooms} onChange={(v) => setF('hasCaregiverRooms', v)} />
       </Panel>
       <Panel title={p.languages} icon={LanguagesIcon} tone="indigo" className="lg:col-span-2">

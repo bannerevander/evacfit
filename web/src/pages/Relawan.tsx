@@ -1,4 +1,4 @@
-import { ExternalLink, MapPin, Navigation, Phone, Timer, Truck } from 'lucide-react'
+import { Accessibility, ExternalLink, MapPin, Navigation, Phone, Timer, Truck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { NeedBadges, usePersona } from '../components/domain'
 import { FamilyForm } from '../components/FamilyForm'
@@ -7,8 +7,9 @@ import { Button, EmptyState, PageHeader, StatusBadge, buttonCls } from '../compo
 import { emptyNeeds } from '../data/mock'
 import { useT, type Dict } from '../i18n'
 import { etaMinutes, formatKm, formatTime, pickupOf } from '../lib/geo'
+import { dataMode, fetchRoute, type Route } from '../state/remote'
 import { useRegion, useStore } from '../state/store'
-import type { Family, LatLng } from '../types'
+import type { Assignment, Family, LatLng } from '../types'
 
 /** Pending field changes. Only shown when something is queued; the connection toggle lives in the top bar. */
 function Outbox() {
@@ -28,7 +29,7 @@ function Outbox() {
 export function RelawanTugas() {
   const d = useT()
   const r = d.relawan
-  const { state, dispatch } = useStore()
+  const { state } = useStore()
   const [me] = usePersona('volunteer')
   const vol = state.volunteers.find((v) => v.id === me) ?? state.volunteers[0]
   const mine = state.assignments.filter((a) => a.volunteerId === vol.id)
@@ -42,65 +43,7 @@ export function RelawanTugas() {
         <EmptyState title={r.emptyTitle}>{r.emptyBody}</EmptyState>
       ) : (
         <ul className="flex flex-col gap-lg">
-          {active.map((a) => {
-            const f = state.families.find((x) => x.id === a.familyId)!
-            const sh = state.shelters.find((s) => s.id === a.shelterId)!
-            const eta = etaMinutes(a.distanceKm, f.needs)
-            const at = pickupOf(f)
-            return (
-              <li key={a.id} className="grid overflow-hidden rounded-lg border border-border bg-background lg:grid-cols-2">
-                <div className="flex flex-col gap-md p-5">
-                  <div className="flex flex-wrap items-start justify-between gap-sm">
-                    <div>
-                      <h2 className="text-h2">{f.familyName}</h2>
-                      <p className="text-body-sm text-text-secondary">{d.common.people(f.memberCount)} · <span className="font-mono font-semibold text-text-primary">{f.code}</span> · {f.contactPhone}</p>
-                    </div>
-                    <StatusBadge status={a.status} />
-                  </div>
-                  <NeedBadges family={f} />
-                  <p className="text-body-sm font-semibold">{a.readyForPickupAt ? r.readyAt(formatTime(a.readyForPickupAt)) : r.notReady}</p>
-                  {/* Actions sit right after the needs and before the address details and map, so on a phone they are visible without scrolling. */}
-                  <div className="grid gap-sm sm:grid-cols-[2fr_1fr]">
-                    {a.status === 'confirmed' ? (
-                      <Button block icon={Truck} onClick={() => dispatch({ type: 'depart', id: a.id })}>{r.depart}</Button>
-                    ) : (
-                      <p role="status" className="flex min-h-12 items-center rounded-md bg-tint-in-transit px-md text-body-md font-semibold text-status-in-transit">{r.inTransit(a.departedAt ? formatTime(a.departedAt) : '—')}</p>
-                    )}
-                    <a href={`tel:${f.contactPhone.replace(/[^0-9+]/g, '')}`} className={buttonCls('secondary', 'md', true)}><Phone aria-hidden className="h-5 w-5" />{r.call}</a>
-                  </div>
-                  <dl className="grid gap-sm rounded-md bg-surface p-md text-body-md">
-                    <div>
-                      <dt className="flex items-center gap-xs text-body-sm text-text-secondary"><MapPin aria-hidden className="h-4 w-4" />{r.pickup}</dt>
-                      <dd className="font-semibold">
-                        {a.reason.pickupShelter ? r.pickupAtShelter(a.reason.pickupShelter) : f.currentAt ? r.currentPickup(formatTime(f.currentAt)) : f.addressNotes || '—'} <span className="font-mono text-caption text-text-secondary">({at.lat.toFixed(4)}, {at.lng.toFixed(4)})</span>
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="flex items-center gap-xs text-body-sm text-text-secondary"><Navigation aria-hidden className="h-4 w-4" />{r.destination}</dt>
-                      <dd className="font-semibold">{sh.name}<span className="block font-normal text-text-secondary">{sh.address}</span></dd>
-                    </div>
-                    <div>
-                      <dt className="flex items-center gap-xs text-body-sm text-text-secondary"><Timer aria-hidden className="h-4 w-4" />{r.eta}</dt>
-                      <dd className="font-semibold">{d.common.km(formatKm(a.distanceKm))} · {d.common.minutes(eta)} <span className="block text-body-sm font-normal text-text-secondary">{r.etaHint}</span></dd>
-                    </div>
-                  </dl>
-                </div>
-                <div className="flex flex-col gap-sm border-t border-border bg-surface p-md lg:border-l lg:border-t-0">
-                  <MapView label={r.mapLabel(f.familyName)} center={at} shelters={[sh]} families={[f]} line={[at, sh]} height="clamp(220px, 40vh, 300px)" />
-                  <p className="text-body-sm text-text-secondary">{r.routeNote}</p>
-                  {/* Destination only: the family's pickup point must not leak into a third-party URL. */}
-                  <a
-                    className="inline-flex min-h-12 items-center gap-sm self-start rounded-md px-sm font-semibold text-primary underline"
-                    href={`https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=;${sh.lat},${sh.lng}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <ExternalLink aria-hidden className="h-4 w-4" />{r.osm}
-                  </a>
-                </div>
-              </li>
-            )
-          })}
+          {active.map((a) => <TaskCard key={a.id} a={a} />)}
         </ul>
       )}
       {done.length > 0 && (
@@ -113,6 +56,105 @@ export function RelawanTugas() {
       )}
     </>
   )
+}
+
+/** Google Maps directions to a point; only coordinates leave EvacFit (no name, phone or notes). */
+const gmaps = (p: LatLng) => `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}&travelmode=driving`
+
+/**
+ * One pickup task. Driving navigation opens Google Maps (free URL, voice turn-by-turn). In supabase mode the volunteer can
+ * also load a step-free wheelchair/walking route (ORS) for when the vehicle cannot reach the door (narrow gang, cut road).
+ */
+function TaskCard({ a }: { a: Assignment }) {
+  const d = useT()
+  const r = d.relawan
+  const { state, dispatch } = useStore()
+  const f = state.families.find((x) => x.id === a.familyId)!
+  const sh = state.shelters.find((s) => s.id === a.shelterId)!
+  const at = pickupOf(f)
+  const [walk, setWalk] = useState(false)
+  const { route, loading } = useRoute(at, sh, walk && !state.offline, state.lang)
+  // Vehicle estimate keeps the NAV-6 slowdown for at-risk groups; the wheelchair route already moves at pushing speed.
+  const eta = route ? route.minutes : etaMinutes(a.distanceKm, f.needs)
+  return (
+    <li className="grid overflow-hidden rounded-lg border border-border bg-background lg:grid-cols-2">
+      <div className="flex flex-col gap-md p-5">
+        <div className="flex flex-wrap items-start justify-between gap-sm">
+          <div>
+            <h2 className="text-h2">{f.familyName}</h2>
+            <p className="text-body-sm text-text-secondary">{d.common.people(f.memberCount)} · <span className="font-mono font-semibold text-text-primary">{f.code}</span> · {f.contactPhone}</p>
+          </div>
+          <StatusBadge status={a.status} />
+        </div>
+        <NeedBadges family={f} />
+        <p className="text-body-sm font-semibold">{a.readyForPickupAt ? r.readyAt(formatTime(a.readyForPickupAt)) : r.notReady}</p>
+        {/* Actions sit right after the needs and before the address details and map, so on a phone they are visible without scrolling. */}
+        <div className="grid gap-sm sm:grid-cols-[2fr_1fr]">
+          {a.status === 'confirmed' ? (
+            <Button block icon={Truck} onClick={() => dispatch({ type: 'depart', id: a.id })}>{r.depart}</Button>
+          ) : (
+            <p role="status" className="flex min-h-12 items-center rounded-md bg-tint-in-transit px-md text-body-md font-semibold text-status-in-transit">{r.inTransit(a.departedAt ? formatTime(a.departedAt) : '—')}</p>
+          )}
+          <a href={`tel:${f.contactPhone.replace(/[^0-9+]/g, '')}`} className={buttonCls('secondary', 'md', true)}><Phone aria-hidden className="h-5 w-5" />{r.call}</a>
+        </div>
+        <dl className="grid gap-sm rounded-md bg-surface p-md text-body-md">
+          <div>
+            <dt className="flex items-center gap-xs text-body-sm text-text-secondary"><MapPin aria-hidden className="h-4 w-4" />{r.pickup}</dt>
+            <dd className="font-semibold">
+              {a.reason.pickupShelter ? r.pickupAtShelter(a.reason.pickupShelter) : f.currentAt ? r.currentPickup(formatTime(f.currentAt)) : f.addressNotes || '—'} <span className="font-mono text-caption text-text-secondary">({at.lat.toFixed(4)}, {at.lng.toFixed(4)})</span>
+            </dd>
+          </div>
+          <div>
+            <dt className="flex items-center gap-xs text-body-sm text-text-secondary"><Navigation aria-hidden className="h-4 w-4" />{r.destination}</dt>
+            <dd className="font-semibold">{sh.name}<span className="block font-normal text-text-secondary">{sh.address}</span></dd>
+          </div>
+          <div>
+            <dt className="flex items-center gap-xs text-body-sm text-text-secondary"><Timer aria-hidden className="h-4 w-4" />{r.eta}</dt>
+            <dd className="font-semibold">{d.common.km(formatKm(route?.km ?? a.distanceKm))} · {d.common.minutes(eta)} <span className="block text-body-sm font-normal text-text-secondary">{route ? r.wheelEtaHint : r.etaHint}</span></dd>
+          </div>
+        </dl>
+      </div>
+      <div className="flex flex-col gap-sm border-t border-border bg-surface p-md lg:border-l lg:border-t-0">
+        <MapView label={r.mapLabel(f.familyName)} center={at} shelters={[sh]} families={[f]} line={[at, sh]} route={route?.coords} height="clamp(220px, 40vh, 300px)" />
+        <p role="status" className="text-body-sm text-text-secondary">
+          {loading ? r.routeLoading : route ? r.routeFrom : walk ? r.routeNone : r.routeNote}
+        </p>
+        {route && route.steps.length > 0 && (
+          <details className="rounded-md border border-border bg-background p-sm text-body-sm">
+            <summary className="min-h-10 cursor-pointer font-semibold text-text-primary">{r.steps(route.steps.length)}</summary>
+            <ol className="mt-xs list-decimal pl-lg">
+              {route.steps.map((st, i) => <li key={i}>{st.text}{st.m > 0 && <span className="text-text-secondary"> · {st.m >= 1000 ? d.common.km(formatKm(st.m / 1000)) : `${st.m} m`}</span>}</li>)}
+            </ol>
+          </details>
+        )}
+        {dataMode === 'supabase' && (
+          <Button variant="secondary" block icon={Accessibility} aria-pressed={walk} onClick={() => setWalk(!walk)} disabled={state.offline}>
+            {walk ? r.walkHide : r.walkShow}
+          </Button>
+        )}
+        {/* Decision (BUG-002): only coordinates go to Google; the family's name, phone and notes stay in EvacFit. */}
+        <div className="grid gap-sm sm:grid-cols-2">
+          <a href={gmaps(at)} target="_blank" rel="noreferrer" className={buttonCls('primary', 'md', true)}><Navigation aria-hidden className="h-5 w-5" />{r.navPickup}</a>
+          <a href={gmaps(sh)} target="_blank" rel="noreferrer" className={buttonCls('secondary', 'md', true)}><ExternalLink aria-hidden className="h-5 w-5" />{r.navShelter}</a>
+        </div>
+        <p className="text-caption text-text-secondary">{r.navHint}</p>
+      </div>
+    </li>
+  )
+}
+
+/** Step-free wheelchair/walking route (ORS), loaded only when asked; offline or failing: none (dashed guide). */
+function useRoute(from: LatLng, to: LatLng, on: boolean, lang: 'id' | 'en') {
+  const [res, setRes] = useState<{ key: string; route: Route | null }>()
+  const key = `${from.lat},${from.lng},${to.lat},${to.lng},${lang}`
+  useEffect(() => {
+    if (dataMode !== 'supabase' || !on || res?.key === key) return
+    let live = true
+    fetchRoute(from, to, 'wheelchair', lang).then((route) => live && setRes({ key, route })).catch(() => live && setRes({ key, route: null }))
+    return () => { live = false }
+  }, [key, on]) // eslint-disable-line react-hooks/exhaustive-deps -- key covers from/to/lang
+  const cur = on && res?.key === key ? res : undefined
+  return { route: cur?.route ?? undefined, loading: on && dataMode === 'supabase' && !cur }
 }
 
 const triageFamily = (d: Dict, center: LatLng): Family => {

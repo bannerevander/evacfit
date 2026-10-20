@@ -48,7 +48,7 @@ export function LangSwitch({ big }: { big?: boolean }) {
           aria-pressed={state.lang === l}
           aria-label={d.langName[l]}
           onClick={() => dispatch({ type: 'set_lang', lang: l })}
-          className={`pressable inline-flex cursor-pointer items-center justify-center rounded-[4px] font-bold ${big ? 'min-h-14 flex-1 gap-xs text-body-md' : 'min-h-11 min-w-11 px-sm text-body-sm'} ${
+          className={`pressable inline-flex cursor-pointer items-center justify-center rounded-[4px] font-bold ${big ? 'min-h-14 flex-1 gap-xs text-body-md' : 'min-h-12 min-w-12 px-sm text-body-sm'} ${
             state.lang === l ? 'bg-primary text-text-on-primary' : 'text-text-primary hover:bg-surface-subtle'
           }`}
         >

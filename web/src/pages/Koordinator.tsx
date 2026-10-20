@@ -7,7 +7,7 @@ import { NeedBadges, ShelterCard } from '../components/domain'
 import { LocationPicker } from '../components/LocationPicker'
 import { MapLegend, MapView } from '../components/MapView'
 import { ShelterForm } from './Posko'
-import { Button, Card, Dialog, EmptyState, IconChip, Meter, PageHeader, Panel, Select, StatusBadge, TextInput, type Tone } from '../components/ui'
+import { Button, Card, CheckRow, Dialog, EmptyState, IconChip, Meter, PageHeader, Panel, Select, StatusBadge, TextInput, type Tone } from '../components/ui'
 import { floodScenario, scenarios } from '../data/mock'
 import { dataMode } from '../state/remote'
 import { useT, type Dict } from '../i18n'
@@ -33,7 +33,10 @@ function SeverityBadge({ s }: { s: Severity }) {
 function ActivateDialog({ open, onClose, draft }: { open: boolean; onClose: () => void; draft?: DisasterEvent }) {
   const d = useT()
   const k = d.koord
-  const { dispatch } = useStore()
+  const { state, dispatch } = useStore()
+  // Only one event can be active: activating another closes the current one, so ask first (K-15).
+  const current = activeEvent(state)
+  const [replaceOk, setReplaceOk] = useState(false)
   // Seeded areas pre-fill their rehearsed scenario (demo mode: the Medan flood); any other area starts from its centre, blank title.
   const { center, areaId } = useRegion()
   const prefill = dataMode === 'demo' ? floodScenario : (areaId && scenarios[areaId]) || { type: 'flood' as const, title: '', ...center, radiusKm: 2 }
@@ -66,8 +69,14 @@ function ActivateDialog({ open, onClose, draft }: { open: boolean; onClose: () =
         </fieldset>
         <TextInput label={k.radius} type="number" step="0.1" min={0.1} required value={radius} onChange={(e) => setRadius(Number(e.target.value))} />
         <p className="text-body-sm text-text-secondary">{k.humanInLoop}</p>
+        {current && (
+          <>
+            <p role="alert" className="rounded-md bg-tint-rejected px-md py-sm text-body-md font-semibold text-status-rejected">{k.replaceWarn(current.title)}</p>
+            <CheckRow label={k.replaceConfirm} checked={replaceOk} onChange={setReplaceOk} />
+          </>
+        )}
         <div className="flex flex-col gap-sm sm:flex-row-reverse">
-          <Button type="submit" variant="emergency" icon={Siren}>{k.confirmActivate}</Button>
+          <Button type="submit" variant="emergency" icon={Siren} disabled={!!current && !replaceOk}>{k.confirmActivate}</Button>
           <Button variant="secondary" onClick={onClose}>{d.common.cancel}</Button>
         </div>
       </form>
@@ -318,7 +327,8 @@ function unmetText(u: UnmetNeed, d: Dict): string {
 }
 
 function toCsv(rows: UnmetNeed[], d: Dict, name: (id: string) => string, people: (id: string) => number): string {
-  const esc = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`
+  // Neutralise spreadsheet formula injection (=, +, -, @, tab, CR) with a leading apostrophe.
+  const esc = (v: string | number) => `"${String(v).replace(/^[=+\-@\t\r]/, "'$&").replace(/"/g, '""')}"`
   return [d.koord.csvHead, ...rows.map((u) => [name(u.familyId), people(u.familyId), d.facility[u.missingFacilityType], unmetText(u, d), d.severity[u.severity], d.resolution[u.resolutionStatus], u.reportedAt])]
     .map((r) => r.map(esc).join(','))
     .join('\n')

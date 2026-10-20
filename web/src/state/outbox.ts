@@ -24,3 +24,4 @@ async function run<T>(mode: IDBTransactionMode, op: (s: IDBObjectStore) => IDBRe
 export const outboxAll = async () => (await run<OutboxItem[]>('readonly', (s) => s.getAll())).sort((a, b) => a.at.localeCompare(b.at))
 export const outboxPut = (item: OutboxItem) => run('readwrite', (s) => s.put(item))
 export const outboxDelete = (id: string) => run('readwrite', (s) => s.delete(id))
+export const outboxClear = () => run('readwrite', (s) => s.clear())

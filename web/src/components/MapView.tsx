@@ -22,11 +22,13 @@ const familyIcon = (color: string) => L.divIcon({ className: '', html: `<div cla
  * Leaflet map. DESIGN.md: the map is never the only way to read this data — every page
  * that shows it also renders a text list, and "Large Text" mode hides it (.map-only).
  */
-export function MapView({ event, shelters = [], families = [], line, center, height = 360, label, bare }: {
+export function MapView({ event, shelters = [], families = [], line, route, center, height = 360, label, bare }: {
   event?: DisasterEvent
   shelters?: Shelter[]
   families?: Family[]
   line?: [LatLng, LatLng]
+  /** Road route as [lat, lng] pairs; replaces the dashed direction guide. */
+  route?: [number, number][]
   center?: LatLng
   /** px number or any CSS length (e.g. clamp()) so the map can follow the viewport. */
   height?: number | string
@@ -56,8 +58,10 @@ export function MapView({ event, shelters = [], families = [], line, center, hei
             <Tooltip>{s.name}</Tooltip>
           </Marker>
         ))}
-        {line && (
-          <Polyline positions={line.map((p) => [p.lat, p.lng] as [number, number])} pathOptions={{ color: '#1D4ED8', weight: 3, dashArray: '6 8' }}>
+        {route ? (
+          <Polyline key="route" positions={route} pathOptions={{ color: '#1D4ED8', weight: 5, opacity: 0.85 }} />
+        ) : line && (
+          <Polyline key="guide" positions={line.map((p) => [p.lat, p.lng] as [number, number])} pathOptions={{ color: '#1D4ED8', weight: 3, dashArray: '6 8' }}>
             <Tooltip>{d.map.guide}</Tooltip>
           </Polyline>
         )}

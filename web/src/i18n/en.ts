@@ -107,8 +107,8 @@ export const en: Dict = {
   },
   alert: (m: AlertMsg) => {
     switch (m.k) {
-      case 'activated': return `Evacuation activated: ${m.title}. ${m.n} families are inside the hazard zone.`
-      case 'matched': return `Optimisation complete${m.engine === 'cp-sat' ? ' (OR-Tools CP-SAT, global solution)' : m.engine === 'greedy' ? ' (fast matcher; solver unavailable)' : ''}: ${m.made} families recommended, ${m.backlog} without a place yet (see Follow-up).`
+      case 'activated': return `Evacuation activated: ${m.title}. ${m.n} ${m.n === 1 ? 'family is' : 'families are'} inside the hazard zone.`
+      case 'matched': return `Optimisation complete${m.engine === 'cp-sat' ? ' (OR-Tools CP-SAT, global solution)' : m.engine === 'greedy' ? ' (fast matcher; solver unavailable)' : ''}: ${m.made} ${m.made === 1 ? 'family' : 'families'} recommended, ${m.backlog} without a place yet (see Follow-up).`
       case 'closed': return 'Evacuation operation closed.'
       case 'checkin_unmet': return `Unmet need reported at check-in for ${m.family}: ${facility[m.facility]}.`
       case 'reallocated': return `High priority: ${m.family} reassigned to ${m.shelter}, awaiting shelter confirmation.`
@@ -406,6 +406,8 @@ export const en: Dict = {
     radius: 'Hazard radius (km)',
     humanInLoop: 'Activation is your decision. The system only prepares the parameters.',
     confirmActivate: 'Activate & place families',
+    replaceWarn: (t: string) => `"${t}" is still active. Activating this event closes it and replaces it as the only active operation.`,
+    replaceConfirm: 'I understand the current event will be closed',
     endTitle: 'End operation',
     endBody: 'Lift the emergency once response is complete. Data is kept for the after-action review.',
     end: 'Close operation',
@@ -539,8 +541,17 @@ export const en: Dict = {
     eta: 'Distance & estimated time',
     etaHint: 'Includes extra time for at-risk groups.',
     mapLabel: (f) => `Pickup map for ${f}`,
-    routeNote: 'The dashed line is only a direction guide. Wheelchair-friendly routes (OpenRouteService) appear once the backend is connected.',
-    osm: 'Open directions in OpenStreetMap',
+    routeNote: 'The dashed line is only a direction guide, not a road route.',
+    routeLoading: 'Calculating walking / wheelchair route…',
+    routeFrom: 'Step-free route avoiding stairs and steep slopes, from OpenRouteService.',
+    routeNone: 'No walking / wheelchair route in the map data for this location.',
+    walkShow: 'Walking / wheelchair route (when the vehicle cannot reach)',
+    walkHide: 'Hide walking / wheelchair route',
+    wheelEtaHint: 'Wheelchair pushing speed (avoids stairs and steep slopes).',
+    steps: (n) => `Directions (${n} steps)`,
+    navPickup: 'Navigate to pickup point',
+    navShelter: 'Navigate to shelter',
+    navHint: 'Opens Google Maps. Only coordinates are sent; names and resident data stay in EvacFit.',
     doneTitle: (n) => `Completed today (${n})`,
     doneRow: (f, t) => `${f} — arrived ${t}`,
     triageTitle: 'Field Triage',

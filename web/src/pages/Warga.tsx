@@ -104,7 +104,7 @@ function Journey({ a }: { a: Assignment }) {
               <p className={`text-body-lg ${done ? 'font-semibold text-text-primary' : 'text-text-secondary'}`}>
                 {label}
                 {now && <span className="ml-sm rounded-full bg-tint-confirmed px-sm py-0.5 text-body-sm font-semibold text-status-confirmed">{d.warga.now}</span>}
-                {done && <span className="sr-only"> {d.warga.done}</span>}
+                {i < idx && <span className="sr-only"> {d.warga.done}</span>}
               </p>
               {done && t && <p className="text-body-sm text-text-secondary">{d.common.at(formatTime(t))}</p>}
             </div>

@@ -9,7 +9,7 @@ import type {
   AlertMsg, Assignment, AssignmentStatus, DisasterEvent, Family, FacilityType, Lang, LatLng, OutboxItem, RejectionCode, Severity, Shelter, ShelterOperationalStatus, UnmetNeed, Volunteer,
 } from '../types'
 import { canTransition, expiredLocks, SOFT_LOCK_MINUTES, vehicleFits } from './machine'
-import { outboxAll, outboxDelete, outboxPut } from './outbox'
+import { outboxAll, outboxClear, outboxDelete, outboxPut } from './outbox'
 import { dataMode, fetchAll, fetchProfile, OfflineError, RemoteError, remoteActions, send, sendOnce, supabase, type Profile, type Remote } from './remote'
 
 export interface Alert {
@@ -467,6 +467,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           // Shared devices: nothing from the previous account stays on screen or in storage.
           local({ type: 'reset' }) // local reducer only: back to the empty initial state, keeping language & display prefs
           setProfile(null)
+          void outboxClear().catch(() => {}) // unsynced family data must not outlive the session on a shared device
           return
         }
         // Defer: supabase-js warns against awaiting its own calls inside this callback.
