@@ -116,6 +116,13 @@ export async function areaAt(p: LatLng): Promise<{ id: string; name: string } | 
   return data
 }
 
+/** Areas a staff account can switch to (those with shelters). Supabase mode only. */
+export async function workAreas(): Promise<{ id: string; name: string }[]> {
+  const { data, error } = await supabase!.rpc('work_areas')
+  if (error) throw new Error(error.message)
+  return data ?? []
+}
+
 /** Action types the server owns. Everything else (language, prefs, alerts, persona) stays in the browser. */
 export const remoteActions = new Set<Action['type']>([
   'activate_event', 'close_event', 'run_matching', 'confirm', 'reject', 'ready', 'dispatch', 'depart', 'check_in',
@@ -137,7 +144,7 @@ function call(a: Action): [string, Row] {
     case 'save_shelter': return ['save_shelter', { s: a.shelter }]
     case 'create_shelter': return ['create_shelter', { s: a.shelter }]
     case 'refer': return ['refer_family', { p_id: a.id }]
-    case 'switch_work': return ['switch_work', { p_shelter: a.shelterId ?? null, p_volunteer: a.volunteerId ?? null }]
+    case 'switch_work': return ['switch_work', { p_shelter: a.shelterId ?? null, p_volunteer: a.volunteerId ?? null, p_area: a.areaId ?? null }]
     case 'report_location': return ['report_location', { p_family: a.familyId, p_lat: a.at?.lat ?? null, p_lng: a.at?.lng ?? null }]
     case 'set_shelter_status': return ['set_shelter_status', { p_id: a.id, p_status: a.status }]
     case 'verify_shelter': return ['verify_shelter', { p_id: a.id, p_verified: a.verified }]

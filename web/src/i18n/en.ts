@@ -144,6 +144,7 @@ export const en: Dict = {
     pickRole: 'EvacFit, choose role',
     mainNav: 'Main navigation',
     workAt: 'On duty at',
+    area: 'Work area',
     me: 'I am',
     simulateOffline: 'Simulate signal loss',
     restoreSignal: 'Restore signal',

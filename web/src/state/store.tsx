@@ -50,7 +50,7 @@ export type Action =
   | { type: 'save_family'; family: Family }
   | { type: 'save_shelter'; shelter: Shelter }
   | { type: 'create_shelter'; shelter: Shelter }
-  | { type: 'switch_work'; shelterId?: string; volunteerId?: string }
+  | { type: 'switch_work'; shelterId?: string; volunteerId?: string; areaId?: string }
   | { type: 'report_location'; familyId: string; at: LatLng | null }
   | { type: 'set_shelter_status'; id: string; status: ShelterOperationalStatus }
   | { type: 'expire_locks' }
@@ -384,6 +384,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     await refresh(alerts).catch(() => local({ type: 'remote_error', code: 'server' }))
   }, [refresh])
 
+  const applyProfile = useCallback(async () => {
+    const p = await fetchProfile()
+    if (p?.shelterId) local({ type: 'set_persona', key: 'shelter', value: p.shelterId })
+    if (p?.volunteerId) local({ type: 'set_persona', key: 'volunteer', value: p.volunteerId })
+    await refresh().catch(() => {}) // offline: keep the last snapshot from this device
+    setProfile(p) // after the data, so role pages never render empty
+  }, [refresh])
+
   /** OFFL-4: send queued field actions oldest first; stop at the first network failure and retry later. */
   const flushing = useRef(false)
   const flush = useCallback(async () => {
@@ -434,8 +442,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
     if (!remoteActions.has(a.type)) return local(a)
     if (a.type === 'switch_work') local(a) // show the new shelter/crew at once; run() then reloads what RLS now allows
-    void run([a])
-  }, [run, flush])
+    // A new area also changes the profile (area name, map centre, shelter/crew picked by the server).
+    void run([a]).then(() => (a.type === 'switch_work' && a.areaId ? applyProfile() : undefined))
+  }, [run, flush, applyProfile])
 
   useEffect(() => {
     try {
@@ -461,14 +470,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           return
         }
         // Defer: supabase-js warns against awaiting its own calls inside this callback.
-        setTimeout(() => {
-          void fetchProfile().then(async (p) => {
-            if (p?.shelterId) local({ type: 'set_persona', key: 'shelter', value: p.shelterId })
-            if (p?.volunteerId) local({ type: 'set_persona', key: 'volunteer', value: p.volunteerId })
-            await refresh().catch(() => {}) // offline: keep the last snapshot from this device
-            setProfile(p) // after the data, so role pages never render empty
-          }).catch(() => setProfile(null))
-        })
+        setTimeout(() => void applyProfile().catch(() => setProfile(null)))
       })
       return () => {
         window.clearInterval(t)
@@ -479,7 +481,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     local({ type: 'expire_locks' })
     const t = window.setInterval(() => local({ type: 'expire_locks' }), 30_000)
     return () => window.clearInterval(t)
-  }, [refresh, flush])
+  }, [refresh, flush, applyProfile])
 
   useEffect(() => {
     const on = () => {
@@ -515,6 +517,7 @@ export function useRegion() {
     serviceLanguages: profile?.country?.serviceLanguages ?? region.serviceLanguages,
     center: profile?.area?.center ?? region.center,
     areaName: profile?.area?.name,
+    areaId: profile?.area?.id,
   }
 }
 

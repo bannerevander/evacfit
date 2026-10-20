@@ -1,7 +1,7 @@
 // Assert-based self-check: `npm run check`. Verifies safety-first placement, needs met unless recorded as gaps,
 // no overbooking, referrals (strict) and the state machine.
 import assert from 'node:assert/strict'
-import { families, floodScenario, shelters } from '../data/mock'
+import { families, floodScenario, scenarios, shelters } from '../data/mock'
 import { canTransition, expiredLocks, vehicleFits } from '../state/machine'
 import type { Assignment, DisasterEvent, NeedKey } from '../types'
 import { distanceKm } from './geo'
@@ -71,10 +71,21 @@ assert.equal(
 )
 
 // City-wide hazard: every shelter is inside the zone, so families still go to the nearest open, verified one, flagged.
-const cityWide: DisasterEvent = { ...event, radiusKm: 100 }
-const wide = matchFamilies({ families, shelters, assignments: [], event: cityWide, familyIds: familiesToMatch(families, cityWide) })
+const cityWide: DisasterEvent = { ...event, radiusKm: 15 }
+const medan = shelters.filter((s) => distanceKm(s, event) < 10)
+const wide = matchFamilies({ families, shelters: medan, assignments: [], event: cityWide, familyIds: familiesToMatch(families, cityWide) })
 assert.equal(wide.unmet.filter((u) => !u.shelterId).length, 0, 'no backlog just because the zone covers every shelter')
 assert.ok(wide.placements.length > 0 && wide.placements.every((p) => p.reason.inZone), 'in-zone placements are flagged')
 
-console.log(`ok — ${placements.length} placed, temporary with gaps:`, unmet.map((u) => `${u.familyId} @ ${u.shelterId} (${u.missingFacilityType})`).join(', '))
+// Every seeded area's rehearsed scenario: its families are in the zone and all get a safe shelter outside it, nearby.
+for (const [area, sc] of Object.entries(scenarios)) {
+  const ev: DisasterEvent = { id: area, source: 'manual', status: 'active', time: '', ...sc }
+  const inZone = familiesToMatch(families, ev)
+  const r = matchFamilies({ families, shelters, assignments: [], event: ev, familyIds: inZone })
+  assert.ok(inZone.length >= 4, `${area}: scenario covers its families`)
+  assert.equal(r.placements.length, inZone.length, `${area}: everyone placed`)
+  assert.ok(r.placements.every((p) => !p.reason.inZone && p.distanceKm < 20), `${area}: safe shelters outside the zone, close by`)
+}
+
+console.log(`ok —${placements.length} placed, temporary with gaps:`, unmet.map((u) => `${u.familyId} @ ${u.shelterId} (${u.missingFacilityType})`).join(', '))
 for (const p of placements) console.log(' ', p.familyId, '→', p.shelterId)

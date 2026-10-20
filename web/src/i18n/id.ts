@@ -154,6 +154,7 @@ export const id = {
     pickRole: 'EvacFit, pilih peran',
     mainNav: 'Navigasi utama',
     workAt: 'Bertugas di',
+    area: 'Wilayah kerja',
     me: 'Saya',
     simulateOffline: 'Simulasi sinyal putus',
     restoreSignal: 'Pulihkan sinyal',

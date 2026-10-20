@@ -8,7 +8,7 @@ import { LocationPicker } from '../components/LocationPicker'
 import { MapLegend, MapView } from '../components/MapView'
 import { ShelterForm } from './Posko'
 import { Button, Card, Dialog, EmptyState, IconChip, Meter, PageHeader, Panel, Select, StatusBadge, TextInput, type Tone } from '../components/ui'
-import { floodScenario } from '../data/mock'
+import { floodScenario, scenarios } from '../data/mock'
 import { dataMode } from '../state/remote'
 import { useT, type Dict } from '../i18n'
 import { fmtNum } from '../i18n/format'
@@ -34,9 +34,9 @@ function ActivateDialog({ open, onClose, draft }: { open: boolean; onClose: () =
   const d = useT()
   const k = d.koord
   const { dispatch } = useStore()
-  // Demo mode pre-fills the rehearsed flood scenario; the live app starts from the region centre with a blank title.
-  const { center } = useRegion()
-  const prefill = dataMode === 'demo' ? floodScenario : { type: 'flood' as const, title: '', ...center, radiusKm: 2 }
+  // Seeded areas pre-fill their rehearsed scenario (demo mode: the Medan flood); any other area starts from its centre, blank title.
+  const { center, areaId } = useRegion()
+  const prefill = dataMode === 'demo' ? floodScenario : (areaId && scenarios[areaId]) || { type: 'flood' as const, title: '', ...center, radiusKm: 2 }
   const [type, setType] = useState<DisasterType>(draft?.type ?? prefill.type)
   const [title, setTitle] = useState(draft?.title ?? prefill.title)
   const [lat, setLat] = useState(draft?.lat ?? prefill.lat)

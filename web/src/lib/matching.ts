@@ -58,6 +58,10 @@ export function shelterUsable(s: Shelter, event: DisasterEvent): boolean {
   return s.operationalStatus === 'open' && s.verificationStatus === 'verified' && distanceKm(s, event) > event.radiusKm
 }
 
+// shortcut: demo data has no operation areas, so a distance cap stands in for the server's area + neighbours scope
+// (keeps Medan families out of Karo shelters); drop it if the demo store ever gets areas.
+const REACH_KM = 30
+
 export interface Placement {
   familyId: string
   shelterId: string
@@ -127,7 +131,7 @@ export interface MatchInput {
 export function matchFamilies({ families, shelters, assignments, event, familyIds, excluded = {}, strict = false }: MatchInput) {
   const byId = new Map(families.map((f) => [f.id, f]))
   // Outside the hazard zone first; an open, verified shelter inside it is the last resort (city-wide hazards).
-  const pool = shelters.filter((s) => s.operationalStatus === 'open' && s.verificationStatus === 'verified')
+  const pool = shelters.filter((s) => s.operationalStatus === 'open' && s.verificationStatus === 'verified' && distanceKm(s, event) <= event.radiusKm + REACH_KM)
   const inZone = (s: Shelter) => !shelterUsable(s, event)
   const loads = new Map(pool.map((s) => [s.id, shelterLoad(s, assignments, byId)]))
   const placements: Placement[] = []

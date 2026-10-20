@@ -1,13 +1,36 @@
 // Work context shown in the staff top bar: which shelter I staff / which crew I am. Demo mode switches locally;
 // supabase mode saves it to the account (switch_work) so permissions follow. The signal simulator is demo-only.
 import { CloudOff, Wifi } from 'lucide-react'
-import { useId } from 'react'
+import { useEffect, useId, useState, type ReactNode } from 'react'
 import { useT } from '../i18n'
-import { dataMode } from '../state/remote'
+import { dataMode, workAreas } from '../state/remote'
 import { useStore } from '../state/store'
 import { usePersona } from './domain'
 
 const selectCls = 'min-h-12 min-w-0 max-w-full rounded-md border border-text-muted bg-background px-sm text-body-md font-semibold text-text-primary'
+
+/** Which operation area (kabupaten/kota) the account works in. Supabase only: demo data has no areas. */
+export function AreaContext({ children }: { children?: ReactNode }) {
+  const d = useT()
+  const { profile, dispatch } = useStore()
+  const [areas, setAreas] = useState<{ id: string; name: string }[]>([])
+  const fid = useId()
+  useEffect(() => {
+    if (dataMode === 'supabase') void workAreas().then(setAreas).catch(() => {}) // offline: the picker just stays hidden
+  }, [])
+  const current = profile?.area?.id
+  return (
+    <div className="flex min-w-0 flex-wrap items-center gap-md">
+      {areas.length > 1 && current && <div className="flex min-w-0 items-center gap-sm">
+        <label htmlFor={fid} className="shrink-0 text-body-sm text-text-secondary">{d.layout.area}</label>
+        <select id={fid} value={current} onChange={(e) => dispatch({ type: 'switch_work', areaId: e.target.value })} className={`${selectCls} flex-1 lg:w-[240px] lg:flex-none`}>
+          {areas.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+        </select>
+      </div>}
+      {children}
+    </div>
+  )
+}
 
 export function ShelterContext() {
   const d = useT()
