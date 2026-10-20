@@ -150,7 +150,7 @@ function DisplayMenu() {
         {d.a11y.display}
       </button>
       {open && (
-        <div id={pid} role="dialog" aria-label={d.a11y.displayTitle} className="enter absolute right-0 top-[calc(100%+8px)] z-[1200] flex w-[min(calc(100vw-32px),360px)] flex-col gap-sm rounded-lg border border-text-muted bg-background p-md">
+        <div id={pid} role="dialog" aria-label={d.a11y.displayTitle} className="enter absolute right-0 top-[calc(100%+8px)] z-[1200] flex w-[min(calc(100vw-32px),360px)] max-sm:fixed max-sm:inset-x-md max-sm:top-[72px] max-sm:w-auto flex-col gap-sm rounded-lg border border-text-muted bg-background p-md">
           <p className="text-body-sm font-semibold uppercase text-text-secondary">{d.a11y.language}</p>
           <LangSwitch big />
           <p className="mt-sm text-body-sm font-semibold uppercase text-text-secondary">{d.a11y.display}</p>

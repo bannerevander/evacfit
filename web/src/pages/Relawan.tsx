@@ -1,4 +1,4 @@
-import { Accessibility, ExternalLink, MapPin, Navigation, Phone, Timer, Truck } from 'lucide-react'
+import { Accessibility, ChevronDown, ExternalLink, MapPin, Navigation, Phone, Timer, Truck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { NeedBadges, usePersona } from '../components/domain'
 import { FamilyForm } from '../components/FamilyForm'
@@ -72,20 +72,28 @@ function TaskCard({ a }: { a: Assignment }) {
   const f = state.families.find((x) => x.id === a.familyId)!
   const sh = state.shelters.find((s) => s.id === a.shelterId)!
   const at = pickupOf(f)
+  const [open, setOpen] = useState(false)
   const [walk, setWalk] = useState(false)
   const { route, loading } = useRoute(at, sh, walk && !state.offline, state.lang)
   // Vehicle estimate keeps the NAV-6 slowdown for at-risk groups; the wheelchair route already moves at pushing speed.
   const eta = route ? route.minutes : etaMinutes(a.distanceKm, f.needs)
   return (
-    <li className="grid overflow-hidden rounded-lg border border-border bg-background lg:grid-cols-2">
-      <div className="flex flex-col gap-md p-5">
-        <div className="flex flex-wrap items-start justify-between gap-sm">
-          <div>
-            <h2 className="text-h2">{f.familyName}</h2>
-            <p className="text-body-sm text-text-secondary">{d.common.people(f.memberCount)} · <span className="font-mono font-semibold text-text-primary">{f.code}</span> · {f.contactPhone}</p>
-          </div>
-          <StatusBadge status={a.status} />
+    <li className="overflow-hidden rounded-lg border border-border bg-background">
+      {/* Collapsed by default: a long task list stays scannable; details (and the map) render only when opened. */}
+      <details open={open} onToggle={(e) => setOpen(e.currentTarget.open)} className="group">
+      <summary className="pressable flex min-h-16 cursor-pointer list-none items-center justify-between gap-sm p-5 hover:bg-surface-subtle [&::-webkit-details-marker]:hidden">
+        <div className="min-w-0">
+          <h2 className="text-h2">{f.familyName}</h2>
+          <p className="text-body-sm text-text-secondary">{d.common.people(f.memberCount)} · <span className="font-mono font-semibold text-text-primary">{f.code}</span> · {sh.name}</p>
         </div>
+        <span className="flex shrink-0 items-center gap-sm">
+          <StatusBadge status={a.status} />
+          <ChevronDown aria-hidden className="h-5 w-5 text-text-secondary transition-transform group-open:rotate-180" />
+        </span>
+      </summary>
+      {open && <div className="grid border-t border-border lg:grid-cols-2">
+      <div className="flex flex-col gap-md p-5">
+        <p className="text-body-sm text-text-secondary">{f.contactPhone}</p>
         <NeedBadges family={f} />
         <p className="text-body-sm font-semibold">{a.readyForPickupAt ? r.readyAt(formatTime(a.readyForPickupAt)) : r.notReady}</p>
         {/* Actions sit right after the needs and before the address details and map, so on a phone they are visible without scrolling. */}
@@ -139,6 +147,8 @@ function TaskCard({ a }: { a: Assignment }) {
         </div>
         <p className="text-caption text-text-secondary">{r.navHint}</p>
       </div>
+      </div>}
+      </details>
     </li>
   )
 }
