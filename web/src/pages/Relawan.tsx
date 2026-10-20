@@ -88,9 +88,10 @@ export function RelawanTugas() {
                 <div className="flex flex-col gap-sm border-t border-border bg-surface p-md lg:border-l lg:border-t-0">
                   <MapView label={r.mapLabel(f.familyName)} center={at} shelters={[sh]} families={[f]} line={[at, sh]} height="clamp(220px, 40vh, 300px)" />
                   <p className="text-body-sm text-text-secondary">{r.routeNote}</p>
+                  {/* Destination only: the family's pickup point must not leak into a third-party URL. */}
                   <a
                     className="inline-flex min-h-12 items-center gap-sm self-start rounded-md px-sm font-semibold text-primary underline"
-                    href={`https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${at.lat},${at.lng};${sh.lat},${sh.lng}`}
+                    href={`https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=;${sh.lat},${sh.lng}`}
                     target="_blank"
                     rel="noreferrer"
                   >

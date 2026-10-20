@@ -3,9 +3,16 @@ dist/
 .env
 .env.*
 !.env.example
+!.env.demo
 .playwright-cli/
 output/
 *.tsbuildinfo
 supabase/.temp/
 .vercel
-!.env.demo
+
+# Catatan kerja internal, bukan bagian kode proyek
+QA EvacFit */
+QA-Agent-Testing.md
+PLAN-Tahap-Berikutnya.md
+RISET-Skala-Universal.md
+logo evacfit.*

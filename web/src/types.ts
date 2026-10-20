@@ -45,7 +45,7 @@ export type AlertMsg =
   | { k: 'no_alternative'; family: string }
   | { k: 'no_referral'; family: string }
   | { k: 'synced'; n: number }
-  | { k: 'error'; code: 'no_event' | 'not_found' | 'bad_transition' | 'not_confirmed' | 'vehicle_mismatch' | 'forbidden' | 'outside_area' | 'server' }
+  | { k: 'error'; code: 'no_event' | 'not_found' | 'bad_transition' | 'not_confirmed' | 'vehicle_mismatch' | 'forbidden' | 'outside_area' | 'shelter_unverified' | 'server' }
 
 export type FamilyStatus = 'idle' | 'waiting_match' | 'recommended' | 'confirmed' | 'in_transit' | 'arrived' | 'cancelled'
 

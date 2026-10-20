@@ -9,6 +9,7 @@ export const region = {
   center: { lat: 3.58, lng: 98.68 },
 }
 
+
 /** Public demo accounts (fictional data only), created by supabase/migrations/*_seed.sql. Used by the "Sign in as demo" buttons. */
 export const demoAccounts = {
   coordinator: 'koordinator@evacfit.demo',

@@ -124,6 +124,7 @@ export const en: Dict = {
           vehicle_mismatch: 'Vehicle not suitable: this family needs a wheelchair-accessible vehicle.',
           forbidden: 'This account is not allowed to do that.',
           outside_area: 'This location is outside the areas EvacFit serves.',
+          shelter_unverified: 'This shelter is not verified. An officer must inspect it before placements can be confirmed.',
           server: 'The server could not process the request. Please try again.',
         }[m.code]
     }

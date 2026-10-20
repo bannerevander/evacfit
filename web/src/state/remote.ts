@@ -146,7 +146,7 @@ function call(a: Action): [string, Row] {
   }
 }
 
-const errorCodes = ['no_event', 'not_found', 'bad_transition', 'not_confirmed', 'vehicle_mismatch', 'forbidden', 'outside_area'] as const
+const errorCodes = ['no_event', 'not_found', 'bad_transition', 'not_confirmed', 'vehicle_mismatch', 'forbidden', 'outside_area', 'shelter_unverified'] as const
 type ErrorCode = Extract<AlertMsg, { k: 'error' }>['code']
 
 /**

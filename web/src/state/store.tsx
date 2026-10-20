@@ -196,6 +196,8 @@ function reduce(s: State, a: Action): State {
       return alert(next, 'info', { k: 'matched', made, backlog: ids.length - made })
     }
     case 'confirm': {
+      const pending = s.assignments.find((x) => x.id === a.id)
+      if (pending && s.shelters.find((x) => x.id === pending.shelterId)?.verificationStatus !== 'verified') throw new StoreError('shelter_unverified')
       const next = move(s, a.id, 'confirmed', { confirmedAt: now() })
       const as = next.assignments.find((x) => x.id === a.id)!
       return setFamilyStatus(next, [as.familyId], 'confirmed')

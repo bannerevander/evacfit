@@ -134,6 +134,7 @@ export const id = {
           vehicle_mismatch: 'Kendaraan tidak sesuai: keluarga membutuhkan kendaraan ramah kursi roda.',
           forbidden: 'Akun ini tidak berwenang melakukan tindakan tersebut.',
           outside_area: 'Lokasi berada di luar wilayah layanan EvacFit.',
+          shelter_unverified: 'Posko belum terverifikasi. Petugas harus memeriksanya sebelum penempatan bisa dikonfirmasi.',
           server: 'Server tidak bisa memproses permintaan. Coba lagi.',
         }[m.code]
     }
