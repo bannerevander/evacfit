@@ -1,4 +1,4 @@
-import { ArrowRight, Building2, LogIn, Check, CircleCheckBig, ClipboardList, HeartHandshake, RadioTower, Shuffle, ShieldCheck, Truck, type LucideIcon } from 'lucide-react'
+import { Accessibility, ArrowRight, Building2, LogIn, Check, CircleCheckBig, ClipboardList, HeartHandshake, House, RadioTower, Shuffle, ShieldCheck, Truck, Users, type LucideIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { A11yToggles, LangSwitch, Logo, Mark } from '../components/Layout'
 import { Button, IconChip, buttonCls, type Tone } from '../components/ui'
@@ -18,8 +18,11 @@ const flowIcons: { icon: LucideIcon; tone: Tone }[] = [
 function PhonePreview() {
   const d = useT()
   return (
-    <div role="img" aria-label={d.home.previewLabel} className="mx-auto w-[300px] rounded-[36px] border-[10px] border-text-primary bg-surface">
-      <div aria-hidden className="overflow-hidden rounded-[26px]">
+    <div role="img" aria-label={d.home.previewLabel} className="mx-auto flex h-[500px] w-[270px] flex-col rounded-[48px] border-[8px] border-text-primary bg-text-primary">
+      <div aria-hidden className="flex flex-1 flex-col overflow-hidden rounded-[40px] bg-surface">
+        <div className="flex h-[30px] shrink-0 items-start justify-center bg-background pt-[8px]">
+          <span className="h-[18px] w-[76px] rounded-full bg-text-primary" />
+        </div>
         <div className="flex h-11 items-center justify-between bg-background px-md">
           <Logo className="h-5" />
           <span className="rounded-md bg-accent-emergency px-xs text-caption font-bold text-text-on-primary">112</span>
@@ -48,6 +51,16 @@ function PhonePreview() {
               </li>
             ))}
           </ol>
+        </div>
+        <div className="mt-auto border-t border-border bg-background">
+          <div className="grid grid-cols-3 pt-sm">
+            {([[House, d.nav.home], [Accessibility, d.nav.needs], [Users, d.nav.family]] as [LucideIcon, string][]).map(([Icon, label], i) => (
+              <span key={i} className={`flex flex-col items-center gap-[2px] text-[11px] font-semibold ${i === 0 ? 'text-primary' : 'text-text-secondary'}`}>
+                <Icon className="h-5 w-5" />{label}
+              </span>
+            ))}
+          </div>
+          <span className="mx-auto mb-[8px] mt-sm block h-[4px] w-[96px] rounded-full bg-text-primary" />
         </div>
       </div>
     </div>
