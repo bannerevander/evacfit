@@ -198,7 +198,7 @@ export function KoordinatorKomando() {
           {inZone.length > 0 && <Progress families={inZone} />}
           <Panel title={k.capacityTitle} icon={Building2} bodyClass="p-0">
             <ul className="divide-y divide-border">
-              {state.shelters.map((s) => {
+              {(event ? [...state.shelters].sort((a, b) => distanceKm(a, event) - distanceKm(b, event)) : state.shelters).map((s) => {
                 const l = shelterLoad(s, state.assignments, byId)
                 return (
                   <li key={s.id} className="flex flex-col gap-xs px-md py-sm">

@@ -41,7 +41,8 @@ export function MapView({ event, shelters = [], families = [], line, route, cent
   const c = center ?? event ?? shelters[0] ?? region.center
   return (
     <div className={`map-only relative isolate overflow-hidden ${bare ? '' : 'rounded-lg border border-border'}`} role="region" aria-label={d.a11y.mapRegion(label)}>
-      <MapContainer center={[c.lat, c.lng]} zoom={13} scrollWheelZoom={false} style={{ height }}>
+      {/* Leaflet reads center only on mount: remount when an event is activated so the map moves to it */}
+      <MapContainer key={event?.id ?? 'no-event'} center={[c.lat, c.lng]} zoom={13} scrollWheelZoom={false} style={{ height }}>
         <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         {event && (
           <Circle center={[event.lat, event.lng]} radius={event.radiusKm * 1000} pathOptions={{ color: '#DC2626', weight: 2, dashArray: '6 6', fillOpacity: 0.1 }}>
