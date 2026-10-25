@@ -466,7 +466,7 @@ export function KoordinatorPosko() {
         actions={<Button icon={Plus} onClick={() => setAdding(blankShelter(center, serviceLanguages[0]))}>{k.addShelter}</Button>}
       />
       {adding && (
-        <Dialog open onClose={() => setAdding(undefined)} title={k.addShelter}>
+        <Dialog open wide onClose={() => setAdding(undefined)} title={k.addShelter}>
           <ShelterForm shelter={adding} onSave={(s) => { dispatch({ type: 'create_shelter', shelter: s }); setAdding(undefined) }} />
         </Dialog>
       )}

@@ -331,7 +331,8 @@ export function EmptyState({ title, children }: { title: string; children?: Reac
 }
 
 /** Native <dialog> modal: focus trap, Esc and backdrop handled by the browser. */
-export function Dialog({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
+/** `wide` fits a full two-column form (e.g. the shelter form) on desktop. */
+export function Dialog({ open, onClose, title, children, wide = false }: { open: boolean; onClose: () => void; title: string; children: ReactNode; wide?: boolean }) {
   const ref = useRef<HTMLDialogElement>(null)
   const titleId = useId()
   useEffect(() => {
@@ -345,7 +346,7 @@ export function Dialog({ open, onClose, title, children }: { open: boolean; onCl
       ref={ref}
       aria-labelledby={titleId}
       onClose={onClose}
-      className="w-[min(100%-32px,560px)] rounded-lg border border-border bg-background p-0 text-text-primary backdrop:bg-text-primary/50"
+      className={`${wide ? 'w-[min(100%-32px,1128px)]' : 'w-[min(100%-32px,560px)]'} rounded-lg border border-border bg-background p-0 text-text-primary backdrop:bg-text-primary/50`}
     >
       <div className="max-h-[85vh] overflow-y-auto p-lg">
         <h2 id={titleId} className="mb-md text-h2">{title}</h2>

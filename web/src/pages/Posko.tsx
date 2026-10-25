@@ -337,10 +337,6 @@ export function ShelterForm({ shelter, onSave }: { shelter: Shelter; onSave: (s:
           <TextInput label={p.local} helper={p.localHint} type="number" min={0} value={s.currentOccupancy} onChange={(e) => setS({ ...s, currentOccupancy: Number(e.target.value) })} />
         </div>
       </Panel>
-      <Panel title={p.location} icon={MapPin} className="lg:col-span-2" bodyClass="flex flex-col gap-md">
-        <p className="text-body-sm text-text-secondary">{p.locationHint}</p>
-        <LocationPicker value={s} onChange={(pt) => setS({ ...s, ...pt })} />
-      </Panel>
       <Panel title={p.access} icon={Accessibility} tone="green" bodyClass="flex flex-col gap-sm">
         <CheckRow label={p.f.ramp} checked={f.hasRamp} onChange={(v) => setF('hasRamp', v)} />
         <CheckRow label={p.f.slope} checked={f.rampSlopeCompliant} onChange={(v) => setF('rampSlopeCompliant', v)} />
@@ -351,6 +347,10 @@ export function ShelterForm({ shelter, onSave }: { shelter: Shelter; onSave: (s:
         {f.hasMedicalPower && <TextInput label={p.f.powerW} type="number" min={0} step={100} value={f.backupGeneratorCapacityWatt} onChange={(e) => setF('backupGeneratorCapacityWatt', Number(e.target.value))} />}
         <CheckRow label={p.f.caregiver} checked={f.hasCaregiverRooms} onChange={(v) => setF('hasCaregiverRooms', v)} />
         <CheckRow label={p.f.health} checked={f.hasHealthPost} onChange={(v) => setF('hasHealthPost', v)} />
+      </Panel>
+      <Panel title={p.location} icon={MapPin} className="lg:col-span-2" bodyClass="flex flex-col gap-md">
+        <p className="text-body-sm text-text-secondary">{p.locationHint}</p>
+        <LocationPicker value={s} onChange={(pt) => setS({ ...s, ...pt })} />
       </Panel>
       <Panel title={p.languages} icon={LanguagesIcon} tone="indigo" className="lg:col-span-2">
         <div className="grid gap-sm sm:grid-cols-2 lg:grid-cols-4">
