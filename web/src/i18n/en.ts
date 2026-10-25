@@ -31,6 +31,7 @@ export const en: Dict = {
     demoData: 'Sample data',
     back: 'Back',
     cancel: 'Cancel',
+    close: 'Close',
     next: 'Continue',
     save: 'Save',
     change: 'Change',

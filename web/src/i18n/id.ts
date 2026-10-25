@@ -33,6 +33,7 @@ export const id = {
     demoData: 'Data contoh',
     back: 'Kembali',
     cancel: 'Batal',
+    close: 'Tutup',
     next: 'Lanjut',
     save: 'Simpan',
     change: 'Ubah',

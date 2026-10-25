@@ -1,6 +1,6 @@
 // Primitive components built strictly from DESIGN.md tokens (front-matter `components`).
 import {
-  AlertTriangle, Check, CheckCircle2, Clock, Hourglass, Home, Minus, Plus, Shuffle, ShieldCheck, Truck, Volume2, VolumeX, XCircle, type LucideIcon,
+  AlertTriangle, Check, CheckCircle2, Clock, Hourglass, Home, Minus, Plus, Shuffle, ShieldCheck, Truck, Volume2, VolumeX, X, XCircle, type LucideIcon,
 } from 'lucide-react'
 import { useEffect, useId, useRef, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react'
 import { useT } from '../i18n'
@@ -333,6 +333,7 @@ export function EmptyState({ title, children }: { title: string; children?: Reac
 /** Native <dialog> modal: focus trap, Esc and backdrop handled by the browser. */
 /** `wide` fits a full two-column form (e.g. the shelter form) on desktop. */
 export function Dialog({ open, onClose, title, children, wide = false }: { open: boolean; onClose: () => void; title: string; children: ReactNode; wide?: boolean }) {
+  const d = useT()
   const ref = useRef<HTMLDialogElement>(null)
   const titleId = useId()
   useEffect(() => {
@@ -349,7 +350,14 @@ export function Dialog({ open, onClose, title, children, wide = false }: { open:
       className={`${wide ? 'w-[min(100%-32px,1128px)]' : 'w-[min(100%-32px,560px)]'} rounded-lg border border-border bg-background p-0 text-text-primary backdrop:bg-text-primary/50`}
     >
       <div className="max-h-[85vh] overflow-y-auto p-lg">
-        <h2 id={titleId} className="mb-md text-h2">{title}</h2>
+        <div className="mb-md flex items-start gap-sm">
+          <h2 id={titleId} className="flex-1 text-h2">{title}</h2>
+          {/* closing the <dialog> fires its close event, so onClose runs the same way as with Esc */}
+          <button type="button" onClick={() => ref.current?.close()} aria-label={d.common.close}
+            className="pressable -mr-sm -mt-sm inline-flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-secondary hover:bg-surface-subtle hover:text-text-primary">
+            <X aria-hidden className="h-6 w-6" />
+          </button>
+        </div>
         {children}
       </div>
     </dialog>
