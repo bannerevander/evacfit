@@ -332,7 +332,7 @@ export function ShelterForm({ shelter, onSave }: { shelter: Shelter; onSave: (s:
         <TextInput label={p.name} required value={s.name} onChange={(e) => setS({ ...s, name: e.target.value })} />
         <TextArea label={p.address} required value={s.address} onChange={(e) => setS({ ...s, address: e.target.value })} />
         <TextInput label={p.contact} type="tel" value={s.contact} onChange={(e) => setS({ ...s, contact: e.target.value })} />
-        <div className="grid gap-md sm:grid-cols-2">
+        <div className="grid gap-md sm:grid-cols-2 sm:items-end">
           <TextInput label={p.capacity} type="number" min={0} required value={s.totalCapacity} onChange={(e) => setS({ ...s, totalCapacity: Number(e.target.value) })} />
           <TextInput label={p.local} helper={p.localHint} type="number" min={0} value={s.currentOccupancy} onChange={(e) => setS({ ...s, currentOccupancy: Number(e.target.value) })} />
         </div>

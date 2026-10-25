@@ -527,7 +527,7 @@ export const id = {
     f: {
       ramp: 'Ada rampa', slope: 'Kemiringan rampa landai (≤ 1:12)', door: 'Lebar pintu ≥ 90 cm', toilet: 'Toilet duduk aksesibel berpegangan', toiletCount: 'Jumlah toilet aksesibel',
       power: 'Genset / daya listrik untuk alat medis', powerW: 'Kapasitas genset cadangan (watt)', caregiver: 'Ruang untuk pendamping',
-      health: 'Pos kesehatan: tenaga kesehatan di lokasi dan obat dasar',
+      health: 'Pos kesehatan (nakes & obat dasar)',
     },
     languages: 'Bahasa layanan',
     saveShelter: 'Simpan data posko',

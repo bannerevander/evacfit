@@ -517,7 +517,7 @@ export const en: Dict = {
     f: {
       ramp: 'Has a ramp', slope: 'Gentle ramp slope (≤ 1:12)', door: 'Door width ≥ 90 cm', toilet: 'Accessible seated toilet with grab bars', toiletCount: 'Number of accessible toilets',
       power: 'Generator / power for medical devices', powerW: 'Backup generator capacity (watts)', caregiver: 'Rooms for caregivers',
-      health: 'Health post: health worker on site and basic medicines',
+      health: 'Health post (staff & basic medicines)',
     },
     languages: 'Service languages',
     saveShelter: 'Save shelter details',
