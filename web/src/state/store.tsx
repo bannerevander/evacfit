@@ -186,7 +186,12 @@ function reduce(s: State, a: Action): State {
       return a.match ? reduce(activated, { type: 'run_matching' }) : activated
     }
     case 'close_event':
-      return alert({ ...s, events: s.events.map((e) => (e.id === a.id ? { ...e, status: 'closed' } : e)) }, 'info', { k: 'closed' })
+      // Same as the server: the next operation starts without this one's placements, arrivals or backlog.
+      return alert({
+        ...s, assignments: [], unmet: [],
+        families: s.families.map((f) => ({ ...f, status: 'idle' })),
+        events: s.events.map((e) => (e.id === a.id ? { ...e, status: 'closed' } : e)),
+      }, 'info', { k: 'closed' })
     case 'run_matching': {
       const event = activeEvent(s)
       if (!event) throw new StoreError('no_event')

@@ -4,7 +4,7 @@ export const region = {
   /** Single national emergency line shown on every citizen screen. 112 is also the GSM-standard number in most countries. */
   emergencyNumber: '112',
   /** Languages a shelter can serve in. Values are stored codes; display names come from the i18n dictionaries. */
-  serviceLanguages: ['Indonesia', 'English', 'BISINDO', 'Batak Toba', 'Karo', 'Mandailing', 'Jawa', 'Minang', 'Sunda', 'Madura', 'Kaili'],
+  serviceLanguages: ['Indonesia', 'English', 'BISINDO', 'Batak Toba', 'Karo', 'Mandailing', 'Jawa', 'Minang', 'Sunda', 'Madura', 'Kaili', 'Aceh'],
   /** Demo map centre (Medan). */
   center: { lat: 3.58, lng: 98.68 },
 }

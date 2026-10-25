@@ -1,5 +1,5 @@
-// Synthetic demo data in seven hazard-prone areas (Medan, Karo, Samosir, Tapanuli Tengah, Cianjur, Lumajang, Palu). Names, phones and shelters are fictional ("Data contoh").
-// Same rows as private.seed_demo_v2 (migration 20261020000026); change both together so demo and Supabase mode match.
+// Synthetic demo data in nine hazard-prone areas (Medan, Karo, Samosir, Tapanuli Tengah, Cianjur, Lumajang, Palu, Aceh Tamiang, Banda Aceh). Names, phones and shelters are fictional ("Data contoh").
+// Same rows as private.seed_demo_v2 + seed_aceh (migrations 20261020000026, 20261025000031); change both together so demo and Supabase mode match.
 import type { DisasterEvent, Family, FunctionalNeeds, Shelter, Volunteer } from '../types'
 
 const noNeeds: FunctionalNeeds = {
@@ -80,6 +80,14 @@ export const families: Family[] = [
   fam('fam-35', 'Keluarga Tombolotutu', 5, -0.89, 119.866, 'Kompleks rumah nelayan', { noStairsRequired: true, medicalPowerRequired: true, minPowerWattage: 400 }, 'caregiver'),
   fam('fam-36', 'Keluarga Lamarauna', 3, -0.882, 119.878, 'Belakang pasar ikan', { pregnantCount: 1, preferredLanguage: 'Kaili' }),
   fam('fam-37', 'Keluarga Pettalolo', 6, -0.892, 119.872, 'Jalan lorong, rumah dua lantai', { noStairsRequired: true, accessibleToiletNeeded: true, caregiverSpaceNeeded: true }),
+  fam('fam-38', 'Keluarga Muhammad Yusuf', 5, 4.279, 98.062, 'Kuala Simpang, rumah tepi Sungai Tamiang', { noStairsRequired: true, medicalPowerRequired: true, minPowerWattage: 500, wheelchairVehicleNeeded: true, preferredLanguage: 'Aceh' }),
+  fam('fam-39', 'Keluarga Ibrahim', 3, 4.274, 98.066, 'Gang dekat pasar Kuala Simpang', { noStairsRequired: true, accessibleToiletNeeded: true, caregiverSpaceNeeded: true }, 'caregiver'),
+  fam('fam-40', 'Keluarga Abdullah', 6, 4.283, 98.058, 'Rumah panggung, dekat jembatan', { infantCount: 1, pregnantCount: 1, preferredLanguage: 'Aceh' }),
+  fam('fam-41', 'Keluarga Ismail', 4, 4.271, 98.06, 'Kampung Bukit Rata, lantai satu', {}),
+  fam('fam-42', 'Keluarga Teuku Hasan', 4, 5.56, 95.298, 'Gampong Ulee Lheue, dekat pantai', { noStairsRequired: true, medicalPowerRequired: true, minPowerWattage: 600, wheelchairVehicleNeeded: true, preferredLanguage: 'Aceh' }),
+  fam('fam-43', 'Keluarga Zulkifli', 3, 5.562, 95.296, 'Gampong Punge, rumah satu lantai', { noStairsRequired: true, caregiverSpaceNeeded: true }, 'caregiver'),
+  fam('fam-44', 'Keluarga Mahmud', 6, 5.565, 95.302, 'Gampong Lampaseh, dekat tambak', { infantCount: 2, preferredLanguage: 'Aceh' }),
+  fam('fam-45', 'Keluarga Nurdin', 2, 5.558, 95.292, 'Belakang meunasah', { accessibleToiletNeeded: true, preferredLanguage: 'Aceh' }),
 ]
 
 /** Demo citizen account: own family plus two families registered as caregiver proxy (REG-3). */
@@ -122,7 +130,14 @@ export const shelters: Shelter[] = [
   { id: 'sh-26', name: 'Posko Kampus Bukit Tondo', address: 'Kel. Tondo, Kec. Mantikulore, Palu', contact: '0812-0000-0226', lat: -0.835, lng: 119.895, totalCapacity: 300, currentOccupancy: 50, operationalStatus: 'open', verificationStatus: 'verified', features: { ...accessible, accessibleToiletCount: 4, hasMedicalPower: true, backupGeneratorCapacityWatt: 3000, hasCaregiverRooms: true, supportedLanguages: ['Indonesia', 'Kaili'] } },
   { id: 'sh-27', name: 'Posko Kelurahan Layana Indah', address: 'Kel. Layana Indah, Kec. Mantikulore, Palu', contact: '0812-0000-0227', lat: -0.862, lng: 119.89, totalCapacity: 100, currentOccupancy: 20, operationalStatus: 'open', verificationStatus: 'verified', features: { ...plain, supportedLanguages: ['Indonesia', 'Kaili'] } },
   { id: 'sh-28', name: 'Posko Lapangan Vatulemo', address: 'Kec. Palu Timur, Palu', contact: '0812-0000-0228', lat: -0.905, lng: 119.875, totalCapacity: 200, currentOccupancy: 30, operationalStatus: 'open', verificationStatus: 'verified', features: { ...plain, supportedLanguages: ['Indonesia', 'Kaili'] } },
-  { id: 'sh-29', name: 'Posko SD Negeri Talise Atas', address: 'Kel. Talise, Kec. Mantikulore, Palu', contact: '0812-0000-0229', lat: -0.866, lng: 119.892, totalCapacity: 40, currentOccupancy: 0, operationalStatus: 'open', verificationStatus: 'unverified', features: { ...accessible, accessibleToiletCount: 1, hasMedicalPower: true, backupGeneratorCapacityWatt: 1500, hasCaregiverRooms: true, supportedLanguages: ['Indonesia', 'Kaili'] } },]
+  { id: 'sh-29', name: 'Posko SD Negeri Talise Atas', address: 'Kel. Talise, Kec. Mantikulore, Palu', contact: '0812-0000-0229', lat: -0.866, lng: 119.892, totalCapacity: 40, currentOccupancy: 0, operationalStatus: 'open', verificationStatus: 'unverified', features: { ...accessible, accessibleToiletCount: 1, hasMedicalPower: true, backupGeneratorCapacityWatt: 1500, hasCaregiverRooms: true, supportedLanguages: ['Indonesia', 'Kaili'] } },
+  { id: 'sh-30', name: 'Posko Aula Kantor Bupati Aceh Tamiang', address: 'Kec. Karang Baru, Aceh Tamiang', contact: '0812-0000-0230', lat: 4.312, lng: 98.035, totalCapacity: 150, currentOccupancy: 30, operationalStatus: 'open', verificationStatus: 'verified', features: { ...accessible, accessibleToiletCount: 3, hasMedicalPower: true, backupGeneratorCapacityWatt: 3000, hasCaregiverRooms: true, supportedLanguages: ['Indonesia', 'Aceh'] } },
+  { id: 'sh-31', name: 'Posko SMA Negeri 1 Karang Baru', address: 'Kec. Karang Baru, Aceh Tamiang', contact: '0812-0000-0231', lat: 4.305, lng: 98.025, totalCapacity: 100, currentOccupancy: 20, operationalStatus: 'open', verificationStatus: 'verified', features: { ...plain, supportedLanguages: ['Indonesia', 'Aceh'] } },
+  { id: 'sh-32', name: 'Posko Puskesmas Rantau', address: 'Kec. Rantau, Aceh Tamiang', contact: '0812-0000-0232', lat: 4.315, lng: 98.09, totalCapacity: 30, currentOccupancy: 0, operationalStatus: 'open', verificationStatus: 'unverified', features: { ...accessible, accessibleToiletCount: 1, hasMedicalPower: true, backupGeneratorCapacityWatt: 1500, hasCaregiverRooms: true, supportedLanguages: ['Indonesia'] } },
+  { id: 'sh-33', name: 'Posko Lapangan Blang Padang', address: 'Kec. Baiturrahman, Banda Aceh', contact: '0812-0000-0233', lat: 5.552, lng: 95.32, totalCapacity: 300, currentOccupancy: 50, operationalStatus: 'open', verificationStatus: 'verified', features: { ...accessible, accessibleToiletCount: 2, hasMedicalPower: false, backupGeneratorCapacityWatt: 0, hasCaregiverRooms: false, supportedLanguages: ['Indonesia', 'Aceh'] } },
+  { id: 'sh-34', name: 'Posko Gedung Serbaguna Darussalam', address: 'Kec. Syiah Kuala, Banda Aceh', contact: '0812-0000-0234', lat: 5.57, lng: 95.37, totalCapacity: 200, currentOccupancy: 30, operationalStatus: 'open', verificationStatus: 'verified', features: { ...accessible, accessibleToiletCount: 3, hasMedicalPower: true, backupGeneratorCapacityWatt: 3000, hasCaregiverRooms: true, supportedLanguages: ['Indonesia', 'Aceh'] } },
+  { id: 'sh-35', name: 'Posko Puskesmas Lueng Bata', address: 'Kec. Lueng Bata, Banda Aceh', contact: '0812-0000-0235', lat: 5.53, lng: 95.34, totalCapacity: 30, currentOccupancy: 0, operationalStatus: 'open', verificationStatus: 'unverified', features: { ...accessible, accessibleToiletCount: 1, hasMedicalPower: true, backupGeneratorCapacityWatt: 1500, hasCaregiverRooms: true, supportedLanguages: ['Indonesia', 'Aceh'] } },
+]
 
 export const volunteers: Volunteer[] = [
   { id: 'vol-01', name: 'Andi Pratama', vehicleType: 'wheelchair_accessible_van', plate: 'BK 1402 AV' },
@@ -141,6 +156,10 @@ export const volunteers: Volunteer[] = [
   { id: 'vol-14', name: 'Truk Evakuasi Candipuro', vehicleType: 'bus', plate: 'N 8076 LM' },
   { id: 'vol-15', name: 'Tim BPBD Kota Palu', vehicleType: 'wheelchair_accessible_van', plate: 'DN 1209 PL' },
   { id: 'vol-16', name: 'Relawan Kelurahan Talise', vehicleType: 'standard_car', plate: 'DN 1755 PL' },
+  { id: 'vol-17', name: 'Tim BPBD Aceh Tamiang', vehicleType: 'boat', plate: 'Perahu AT 01' },
+  { id: 'vol-18', name: 'Ambulans RSUD Aceh Tamiang', vehicleType: 'wheelchair_accessible_van', plate: 'BL 1317 AT' },
+  { id: 'vol-19', name: 'Tim SAR Banda Aceh', vehicleType: 'wheelchair_accessible_van', plate: 'BL 1204 BA' },
+  { id: 'vol-20', name: 'Relawan Gampong Meuraxa', vehicleType: 'standard_car', plate: 'BL 1630 BA' },
 ]
 
 export const disasterEvents: DisasterEvent[] = [
@@ -161,6 +180,8 @@ export const scenarios: Record<string, Scenario> = {
   'ID-JB-kab-cianjur': { type: 'earthquake', title: 'Gempa M5,6 — Cugenang, Cianjur', lat: -6.82, lng: 107.07, radiusKm: 6 },
   'ID-JI-kab-lumajang': { type: 'volcanic_eruption', title: 'Awan panas guguran Semeru — Besuk Kobokan', lat: -8.17, lng: 112.96, radiusKm: 5 },
   'ID-ST-kota-palu': { type: 'earthquake', title: 'Gempa & peringatan tsunami — Pantai Talise, Palu', lat: -0.885, lng: 119.87, radiusKm: 2 },
+  'ID-AC-kab-aceh-tamiang': { type: 'flood', title: 'Banjir luapan Sungai Tamiang — Kuala Simpang', lat: 4.278, lng: 98.062, radiusKm: 2.5 },
+  'ID-AC-kota-banda-aceh': { type: 'earthquake', title: 'Gempa & peringatan tsunami — pesisir Meuraxa, Banda Aceh', lat: 5.565, lng: 95.293, radiusKm: 2.5 },
 }
 
 /** Demo mode (no accounts, no areas) rehearses the Medan flood. */
