@@ -4,9 +4,9 @@ export type Role = 'citizen' | 'coordinator' | 'shelter_manager' | 'volunteer'
 
 export type Lang = 'id' | 'en'
 
-export type NeedKey = 'noStairsRequired' | 'accessibleToiletNeeded' | 'caregiverSpaceNeeded' | 'medicalPowerRequired' | 'wheelchairVehicleNeeded'
+export type NeedKey = 'noStairsRequired' | 'accessibleToiletNeeded' | 'caregiverSpaceNeeded' | 'medicalPowerRequired' | 'chronicCareNeeded' | 'wheelchairVehicleNeeded'
 
-export type FacilityType = 'medical_power' | 'caregiver_room' | 'no_stairs' | 'accessible_toilet' | 'general_capacity'
+export type FacilityType = 'medical_power' | 'caregiver_room' | 'no_stairs' | 'accessible_toilet' | 'health_service' | 'general_capacity'
 
 /** MTCH-5 rationale as data, so the UI can phrase it in the viewer's language. */
 export interface MatchReason {
@@ -72,6 +72,8 @@ export interface FunctionalNeeds {
   caregiverSpaceNeeded: boolean
   medicalPowerRequired: boolean
   minPowerWattage: number
+  /** Routine medication or health monitoring (e.g. diabetes, hypertension); the illness itself is never asked. */
+  chronicCareNeeded: boolean
   wheelchairVehicleNeeded: boolean
   preferredLanguage: string
   infantCount: number
@@ -104,6 +106,8 @@ export interface ShelterFeatures {
   hasMedicalPower: boolean
   backupGeneratorCapacityWatt: number
   hasCaregiverRooms: boolean
+  /** Health worker on site and basic medicines. */
+  hasHealthPost: boolean
   supportedLanguages: string[]
 }
 

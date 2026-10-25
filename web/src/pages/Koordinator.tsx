@@ -446,7 +446,7 @@ function blankShelter(center: LatLng, language: string): Shelter {
     operationalStatus: 'open', verificationStatus: 'unverified',
     features: {
       hasRamp: false, rampSlopeCompliant: false, doorWidthAccessible: false, hasAccessibleToilet: false, accessibleToiletCount: 0,
-      hasMedicalPower: false, backupGeneratorCapacityWatt: 0, hasCaregiverRooms: false, supportedLanguages: [language],
+      hasMedicalPower: false, backupGeneratorCapacityWatt: 0, hasCaregiverRooms: false, hasHealthPost: false, supportedLanguages: [language],
     },
   }
 }

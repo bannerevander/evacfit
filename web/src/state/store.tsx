@@ -69,7 +69,7 @@ export type Action =
   | { type: 'outbox_loaded'; items: OutboxItem[] }
 
 // v2: generated texts became structured data (i18n); older saved demos are ignored.
-const STORAGE_KEY = dataMode === 'supabase' ? 'evacfit-supabase-v1' : 'evacfit-demo-v2'
+const STORAGE_KEY = dataMode === 'supabase' ? 'evacfit-supabase-v1' : 'evacfit-demo-v3'
 
 /** First visit: Indonesian browsers get Indonesian, everyone else English. */
 function detectLang(): Lang {

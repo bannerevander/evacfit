@@ -26,7 +26,7 @@ When a disaster strikes, families are often sent to the nearest shelter even whe
 
 ### Key features
 
-- **Needs-based matching** that compares each family's functional needs (power for medical equipment, step-free access, wheelchair vehicle, accessible toilet, caregiver space, pregnancy, infants) with shelter facilities, capacity and power, and puts the most vulnerable families first.
+- **Needs-based matching** that compares each family's functional needs (power for medical equipment, routine medication or health checks, step-free access, wheelchair vehicle, accessible toilet, caregiver space, pregnancy, infants) with shelter facilities (including an on-site health post), capacity and power, and puts the most vulnerable families first.
 - **Optimisation solver** (Google OR-Tools CP-SAT) that places as many vulnerable families as possible and then minimises travel distance. If the solver is unavailable, the app falls back to a built-in greedy matcher.
 - **Safe capacity handling**: every placement is re-checked in Postgres under a row lock, so a shelter is never overbooked.
 - **Maps and routes**: shelter and family locations, plus walking, wheelchair and vehicle routes (OpenRouteService).

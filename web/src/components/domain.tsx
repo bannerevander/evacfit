@@ -74,6 +74,7 @@ export function shelterFeatureLabels(s: Shelter, d: Dict): string[] {
   if (f.hasAccessibleToilet) out.push(d.features.toilet(f.accessibleToiletCount))
   if (f.hasMedicalPower) out.push(d.features.power(f.backupGeneratorCapacityWatt))
   if (f.hasCaregiverRooms) out.push(d.features.caregiver)
+  if (f.hasHealthPost) out.push(d.features.health)
   return out
 }
 

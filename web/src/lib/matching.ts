@@ -35,13 +35,14 @@ export function shelterLoad(s: Shelter, assignments: Assignment[], familiesById:
   }
 }
 
-export const facilityTypes: FacilityType[] = ['medical_power', 'caregiver_room', 'no_stairs', 'accessible_toilet', 'general_capacity']
+export const facilityTypes: FacilityType[] = ['medical_power', 'caregiver_room', 'no_stairs', 'accessible_toilet', 'health_service', 'general_capacity']
 
 type NeedCheck = { need: NeedKey; type: FacilityType; ok: (f: Family, s: Shelter, load: ShelterLoad) => boolean }
 
 /** Order matters: the first need no shelter can satisfy is reported as the deficit. */
 const needChecks: NeedCheck[] = [
   { need: 'medicalPowerRequired', type: 'medical_power', ok: (f, s, l) => s.features.hasMedicalPower && l.powerRemaining >= f.needs.minPowerWattage },
+  { need: 'chronicCareNeeded', type: 'health_service', ok: (_f, s) => s.features.hasHealthPost },
   { need: 'caregiverSpaceNeeded', type: 'caregiver_room', ok: (_f, s) => s.features.hasCaregiverRooms },
   { need: 'noStairsRequired', type: 'no_stairs', ok: (_f, s) => s.features.hasRamp && s.features.rampSlopeCompliant && s.features.doorWidthAccessible },
   { need: 'accessibleToiletNeeded', type: 'accessible_toilet', ok: (_f, s) => s.features.hasAccessibleToilet },
@@ -50,7 +51,7 @@ const needChecks: NeedCheck[] = [
 const applies = (f: Family, c: NeedCheck) => f.needs[c.need]
 
 function isAccessibleShelter(s: Shelter): boolean {
-  return (s.features.hasRamp && s.features.hasAccessibleToilet) || s.features.hasMedicalPower || s.features.hasCaregiverRooms
+  return (s.features.hasRamp && s.features.hasAccessibleToilet) || s.features.hasMedicalPower || s.features.hasCaregiverRooms || s.features.hasHealthPost
 }
 
 /** Usable at all for this event: open, verified (SHLT-5) and outside the hazard radius. */

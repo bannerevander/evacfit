@@ -2,7 +2,7 @@
 // 18px text, 60px controls, icon + text everywhere, plain language, read-aloud on key messages.
 import {
   Accessibility, ArrowLeft, ArrowRight, Backpack, Baby, Bus, Check, CircleCheckBig, Clock3, HeartHandshake, Hourglass, House,
-  IdCard, Languages, LocateFixed, MapPin, Navigation, Pencil, Phone, PlugZap, Save, ShieldCheck, Toilet, Truck, UserPlus, Users,
+  IdCard, Languages, LocateFixed, MapPin, Navigation, Pencil, Phone, PlugZap, Save, ShieldCheck, Stethoscope, Toilet, Truck, UserPlus, Users,
   type LucideIcon,
 } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
@@ -25,12 +25,14 @@ const needIcon: Record<NeedKey, LucideIcon> = {
   accessibleToiletNeeded: Toilet,
   caregiverSpaceNeeded: HeartHandshake,
   medicalPowerRequired: PlugZap,
+  chronicCareNeeded: Stethoscope,
   wheelchairVehicleNeeded: Bus,
 }
 
 function myFamilies(s: State): Family[] {
-  // Supabase: RLS already returns only this account's families.
-  return dataMode === 'supabase' ? s.families : s.families.filter((f) => citizenFamilyIds.includes(f.id) || f.registeredVia === 'caregiver')
+  // Supabase: RLS already returns only this account's families. Demo: the same three seed families as warga@evacfit.demo,
+  // plus families added in this browser (other seed caregiver families belong to other accounts).
+  return dataMode === 'supabase' ? s.families : s.families.filter((f) => citizenFamilyIds.includes(f.id) || (f.registeredVia === 'caregiver' && !f.id.startsWith('fam-')))
 }
 
 function useMyFamily() {
@@ -124,6 +126,7 @@ function Destination({ shelter, a }: { shelter: Shelter; a: Assignment }) {
     f.hasAccessibleToilet && d.features.accessibleToilet,
     f.hasMedicalPower && d.features.medicalPower,
     f.hasCaregiverRooms && d.features.caregiverRoom,
+    f.hasHealthPost && d.features.healthPost,
   ].filter(Boolean) as string[]
   return (
     <section aria-labelledby="tujuan" className="rounded-lg border border-border bg-background p-5">

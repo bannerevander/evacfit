@@ -8,6 +8,7 @@ const need: Record<NeedKey, { label: string; short: string; description: string 
   accessibleToiletNeeded: { label: 'Accessible Toilet', short: 'an accessible toilet', description: 'Seated toilet with grab bars, fits a wheelchair.' },
   caregiverSpaceNeeded: { label: 'Room for a Caregiver', short: 'caregiver space', description: 'The caregiver stays in the same room.' },
   medicalPowerRequired: { label: 'Power for Medical Devices', short: 'medical power supply', description: 'Power for devices such as a nebuliser or oxygen concentrator.' },
+  chronicCareNeeded: { label: 'Routine Medication or Health Checks', short: 'a health post', description: 'For example diabetes, high blood pressure or a heart condition. No need to name the illness.' },
   wheelchairVehicleNeeded: { label: 'Wheelchair-accessible Vehicle', short: 'a wheelchair vehicle', description: 'The pickup vehicle must carry a wheelchair.' },
 }
 
@@ -16,6 +17,7 @@ const facility: Record<FacilityType, string> = {
   caregiver_room: 'Caregiver room',
   no_stairs: 'Step-free access',
   accessible_toilet: 'Accessible toilet',
+  health_service: 'Health post',
   general_capacity: 'General capacity',
 }
 
@@ -78,9 +80,9 @@ export const en: Dict = {
   facility,
   serviceLang,
   features: {
-    ramp: 'Verified ramp', door: 'Door ≥ 90 cm', toilet: (n) => `Accessible toilets (${n})`, power: (w) => `Medical generator ${fmtNum(w)} W`, caregiver: 'Caregiver rooms',
+    ramp: 'Verified ramp', door: 'Door ≥ 90 cm', toilet: (n) => `Accessible toilets (${n})`, power: (w) => `Medical generator ${fmtNum(w)} W`, caregiver: 'Caregiver rooms', health: 'Health post on site',
     plain: 'General shelter — no dedicated accessibility features.',
-    noStairs: 'Step-free', accessibleToilet: 'Accessible toilet', medicalPower: 'Medical power', caregiverRoom: 'Caregiver room',
+    noStairs: 'Step-free', accessibleToilet: 'Accessible toilet', medicalPower: 'Medical power', caregiverRoom: 'Caregiver room', healthPost: 'Health post',
   },
   reasonTitle: 'Why this match',
   reason: (r: MatchReason, shelter: string) => {
@@ -515,6 +517,7 @@ export const en: Dict = {
     f: {
       ramp: 'Has a ramp', slope: 'Gentle ramp slope (≤ 1:12)', door: 'Door width ≥ 90 cm', toilet: 'Accessible seated toilet with grab bars', toiletCount: 'Number of accessible toilets',
       power: 'Generator / power for medical devices', powerW: 'Backup generator capacity (watts)', caregiver: 'Rooms for caregivers',
+      health: 'Health post: health worker on site and basic medicines',
     },
     languages: 'Service languages',
     saveShelter: 'Save shelter details',

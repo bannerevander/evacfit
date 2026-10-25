@@ -350,6 +350,7 @@ export function ShelterForm({ shelter, onSave }: { shelter: Shelter; onSave: (s:
         <CheckRow label={p.f.power} checked={f.hasMedicalPower} onChange={(v) => setF('hasMedicalPower', v)} />
         {f.hasMedicalPower && <TextInput label={p.f.powerW} type="number" min={0} step={100} value={f.backupGeneratorCapacityWatt} onChange={(e) => setF('backupGeneratorCapacityWatt', Number(e.target.value))} />}
         <CheckRow label={p.f.caregiver} checked={f.hasCaregiverRooms} onChange={(v) => setF('hasCaregiverRooms', v)} />
+        <CheckRow label={p.f.health} checked={f.hasHealthPost} onChange={(v) => setF('hasHealthPost', v)} />
       </Panel>
       <Panel title={p.languages} icon={LanguagesIcon} tone="indigo" className="lg:col-span-2">
         <div className="grid gap-sm sm:grid-cols-2 lg:grid-cols-4">

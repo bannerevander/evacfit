@@ -20,6 +20,7 @@ export function distanceKm(a: LatLng, b: LatLng): number {
 export function vulnerabilityScore(n: FunctionalNeeds): number {
   return (
     (n.medicalPowerRequired ? 3 : 0) +
+    (n.chronicCareNeeded ? 2 : 0) +
     (n.noStairsRequired ? 2 : 0) +
     (n.wheelchairVehicleNeeded ? 2 : 0) +
     (n.accessibleToiletNeeded ? 1 : 0) +

@@ -28,6 +28,7 @@ for (const p of placements) {
   if (f.needs.accessibleToiletNeeded && !gap('accessibleToiletNeeded')) assert.ok(s.features.hasAccessibleToilet)
   if (f.needs.caregiverSpaceNeeded && !gap('caregiverSpaceNeeded')) assert.ok(s.features.hasCaregiverRooms)
   if (f.needs.medicalPowerRequired && !gap('medicalPowerRequired')) assert.ok(s.features.hasMedicalPower)
+  if (f.needs.chronicCareNeeded && !gap('chronicCareNeeded')) assert.ok(s.features.hasHealthPost)
   const u = used.get(s.id) ?? { people: 0, watt: 0 }
   u.people += f.memberCount
   u.watt += f.needs.medicalPowerRequired && !gap('medicalPowerRequired') ? f.needs.minPowerWattage : 0
@@ -85,6 +86,13 @@ for (const [area, sc] of Object.entries(scenarios)) {
   assert.ok(inZone.length >= 4, `${area}: scenario covers its families`)
   assert.equal(r.placements.length, inZone.length, `${area}: everyone placed`)
   assert.ok(r.placements.every((p) => !p.reason.inZone && p.distanceKm < 20), `${area}: safe shelters outside the zone, close by`)
+}
+
+{
+  const noPost = shelters.map((x) => ({ ...x, features: { ...x.features, hasHealthPost: false } }))
+  const lubis = matchFamilies({ families, shelters: noPost, assignments: [], event, familyIds: ['fam-03'] })
+  assert.ok(lubis.placements[0].reason.gaps?.includes('chronicCareNeeded'))
+  assert.ok(lubis.unmet[0].detail.needs.includes('chronicCareNeeded'))
 }
 
 console.log(`ok —${placements.length} placed, temporary with gaps:`, unmet.map((u) => `${u.familyId} @ ${u.shelterId} (${u.missingFacilityType})`).join(', '))

@@ -10,6 +10,7 @@ const need: Record<NeedKey, { label: string; short: string; description: string 
   accessibleToiletNeeded: { label: 'Toilet Aksesibel', short: 'toilet aksesibel', description: 'Toilet duduk berpegangan, muat kursi roda.' },
   caregiverSpaceNeeded: { label: 'Ruang untuk Pendamping', short: 'ruang pendamping', description: 'Pendamping tinggal di ruangan yang sama.' },
   medicalPowerRequired: { label: 'Listrik untuk Alat Medis', short: 'suplai listrik medis', description: 'Daya untuk alat seperti nebulizer atau konsentrator oksigen.' },
+  chronicCareNeeded: { label: 'Obat Rutin atau Pemeriksaan Kesehatan', short: 'pos kesehatan', description: 'Misalnya diabetes, darah tinggi, atau sakit jantung. Nama penyakit tidak perlu disebut.' },
   wheelchairVehicleNeeded: { label: 'Kendaraan Ramah Kursi Roda', short: 'kendaraan kursi roda', description: 'Kendaraan penjemput harus bisa membawa kursi roda.' },
 }
 
@@ -18,6 +19,7 @@ const facility: Record<FacilityType, string> = {
   caregiver_room: 'Ruang pendamping',
   no_stairs: 'Akses tanpa tangga',
   accessible_toilet: 'Toilet aksesibel',
+  health_service: 'Pos kesehatan',
   general_capacity: 'Kapasitas umum',
 }
 
@@ -88,9 +90,9 @@ export const id = {
   facility,
   serviceLang,
   features: {
-    ramp: 'Rampa Terverifikasi', door: 'Pintu ≥ 90 cm', toilet: (n: number) => `Toilet Difabel (${n})`, power: (w: number) => `Genset Medis ${fmtNum(w)} W`, caregiver: 'Ruang Pendamping',
+    ramp: 'Rampa Terverifikasi', door: 'Pintu ≥ 90 cm', toilet: (n: number) => `Toilet Difabel (${n})`, power: (w: number) => `Genset Medis ${fmtNum(w)} W`, caregiver: 'Ruang Pendamping', health: 'Pos Kesehatan di Lokasi',
     plain: 'Posko umum — tanpa fasilitas aksesibilitas khusus.',
-    noStairs: 'Tanpa tangga', accessibleToilet: 'Toilet difabel', medicalPower: 'Listrik medis', caregiverRoom: 'Ruang pendamping',
+    noStairs: 'Tanpa tangga', accessibleToilet: 'Toilet difabel', medicalPower: 'Listrik medis', caregiverRoom: 'Ruang pendamping', healthPost: 'Pos kesehatan',
   },
   reasonTitle: 'Alasan pencocokan',
   reason: (r: MatchReason, shelter: string) => {
@@ -525,6 +527,7 @@ export const id = {
     f: {
       ramp: 'Ada rampa', slope: 'Kemiringan rampa landai (≤ 1:12)', door: 'Lebar pintu ≥ 90 cm', toilet: 'Toilet duduk aksesibel berpegangan', toiletCount: 'Jumlah toilet aksesibel',
       power: 'Genset / daya listrik untuk alat medis', powerW: 'Kapasitas genset cadangan (watt)', caregiver: 'Ruang untuk pendamping',
+      health: 'Pos kesehatan: tenaga kesehatan di lokasi dan obat dasar',
     },
     languages: 'Bahasa layanan',
     saveShelter: 'Simpan data posko',
