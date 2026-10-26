@@ -122,7 +122,8 @@ export function ChoiceTile({ type = 'checkbox', name, icon: Icon, label, descrip
 export function ReadAloud({ text }: { text: string }) {
   const d = useT()
   const [speaking, setSpeaking] = useState(false)
-  useEffect(() => () => window.speechSynthesis?.cancel(), [])
+  // New text (the status changed) or unmount stops the old reading, so the button never reads stale text.
+  useEffect(() => () => { window.speechSynthesis?.cancel(); setSpeaking(false) }, [text])
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null
   const toggle = () => {
     const s = window.speechSynthesis

@@ -33,7 +33,7 @@ When a disaster strikes, families are often sent to the nearest shelter even whe
 - **BMKG earthquake alerts**: Indonesia's official open earthquake data is polled every minute and turned into draft events for the coordinator to approve.
 - **Works offline**: field actions are queued on the device and synced without duplicates when the signal returns.
 - **Accessible and bilingual**: large touch targets and text, read-aloud, Bahasa Indonesia and English.
-- **Multi-region**: sample data covers 7 disaster-prone areas (Medan, Karo, Samosir, Tapanuli Tengah, Cianjur, Lumajang, Palu).
+- **Multi-region**: sample data covers 9 disaster-prone areas (Medan, Karo, Samosir, Tapanuli Tengah, Cianjur, Lumajang, Palu, Aceh Tamiang, Banda Aceh).
 
 ### SDG alignment
 
