@@ -168,6 +168,8 @@ export const id = {
     body: (role: string) => `Masuk dengan akun ${role} Anda.`,
     email: 'Email',
     password: 'Kata sandi',
+    emailHint: 'Demo: ketik email apa saja, domain bebas (mis. juri@contoh.com).',
+    passwordHint: 'Demo: ketik kata sandi apa saja.',
     submit: 'Masuk',
     signOut: 'Keluar',
     failed: 'Gagal masuk. Periksa koneksi lalu coba lagi.',

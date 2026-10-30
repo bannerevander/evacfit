@@ -39,8 +39,8 @@ export function Gate({ role, children }: { role: Role; children: ReactNode }) {
             <h1 className="text-h2 text-text-primary">{d.auth.title}</h1>
             <p className="mt-xs text-body-md text-text-secondary">{d.auth.body(name)}</p>
           </div>
-          <TextInput label={d.auth.email} type="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} />
-          <TextInput label={d.auth.password} type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+          <TextInput label={d.auth.email} helper={d.auth.emailHint} type="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          <TextInput label={d.auth.password} helper={d.auth.passwordHint} type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
           <Button type="submit" size="lg" block icon={LogIn} disabled={busy}>{d.auth.submit}</Button>
           {failed && <p role="alert" className="text-body-sm text-accent-emergency">{d.auth.failed}</p>}
         </form>

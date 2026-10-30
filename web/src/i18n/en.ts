@@ -158,6 +158,8 @@ export const en: Dict = {
     body: (role) => `Sign in with your ${role} account.`,
     email: 'Email',
     password: 'Password',
+    emailHint: 'Demo: type any email, any domain works (e.g. judge@example.com).',
+    passwordHint: 'Demo: type any password.',
     submit: 'Sign in',
     signOut: 'Sign out',
     failed: 'Sign-in failed. Check your connection and try again.',
