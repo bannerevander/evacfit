@@ -230,3 +230,22 @@ evacfit/
 - **Frontend**: hosted on Vercel at https://evacfit.vercel.app. The Vercel project uses `web` as its root directory and deploys automatically on every push to `main`.
 - **Solver**: hosted at https://evacfit-solver.vercel.app.
 - **Backend**: Supabase (migrations and Edge Functions as described in [Installation](#4-your-own-supabase-backend-optional)).
+
+## Credits & Data Sources
+
+**Data**
+- Administrative boundaries: [geoBoundaries](https://www.geoboundaries.org) IDN ADM2 (source: BPS / WFP / OCHA ROAP), licensed [CC BY 3.0 IGO](https://creativecommons.org/licenses/by/3.0/igo/).
+- Earthquake alerts: [BMKG open data](https://data.bmkg.go.id) (Badan Meteorologi, Klimatologi, dan Geofisika).
+- Map tiles: © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors.
+- All families, shelters, volunteers and accounts in the demo are fictional.
+
+**Services and libraries**
+- Routing: [OpenRouteService](https://openrouteservice.org). Address search: [Photon](https://photon.komoot.io) by Komoot.
+- Optimisation: [Google OR-Tools](https://developers.google.com/optimization) (CP-SAT) with [FastAPI](https://fastapi.tiangolo.com).
+- Backend: [Supabase](https://supabase.com) (Postgres, PostGIS, pg_cron, Edge Functions).
+- Frontend: React, Vite, Tailwind CSS, [Leaflet](https://leafletjs.com) / React Leaflet, [Lucide](https://lucide.dev) icons, Inter font.
+
+**Design references**
+- GOV.UK "One thing per page": one question per screen in the registration wizard.
+- Red Cross Emergency App and the FEMA App: one large status with one large action, plain language, screen-reader support.
+- Touch-target research (Leitão & Silva, 2012) and WCAG 2.5.5 / 2.5.8: targets of at least 48px, 60px for primary actions.
